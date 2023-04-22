@@ -1,28 +1,42 @@
 package com.example.demo.user.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.sql.Timestamp;
 
 @Entity
 @Data
 @NoArgsConstructor
+@Table(name = "user_master")
 public class User {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String image;
-    private String authProvider;
+    private Long kakaoId;
+    private String kakaoProfileImg;
+
+    private String kakaoNickname;
+
+    private String kakaoEmail;
+
+    private String userRole;
+
+    @CreationTimestamp //(4)
+    private Timestamp createTime;
 
     @Builder
-    public User(String name, String image) {
-        this.name = name;
-        this.image = image;
+    public User(Long kakaoId, String kakaoProfileImg, String kakaoNickname,
+                String kakaoEmail, String userRole) {
+
+        this.kakaoId = kakaoId;
+        this.kakaoProfileImg = kakaoProfileImg;
+        this.kakaoNickname = kakaoNickname;
+        this.kakaoEmail = kakaoEmail;
+        this.userRole = userRole;
     }
 
 }
