@@ -29,6 +29,8 @@ public class UserController {
         String jwtToken = userService.SaveUserAndGetToken(oauthToken.getAccess_token());
 
         HttpHeaders headers = new HttpHeaders();
+
+        // 1 param : header name(key), 2 param : header value
         headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
 
         return ResponseEntity.ok().headers(headers).body("success");
@@ -44,7 +46,7 @@ public class UserController {
     }
 
     @PostMapping("/post")
-    public ResponseEntity<Object> CurrentUser(HttpServletRequest request,@RequestBody String data) { //(1)
+    public ResponseEntity<Object> CurrentUser(HttpServletRequest request, @RequestBody String data) { //(1)
 
         User user = userService.getUser(request);
         System.out.println(user.getUserCode());

@@ -1,7 +1,7 @@
 package com.example.demo.sruvey.service;
 
-import com.example.demo.survey.domain.Question;
-import com.example.demo.survey.domain.Survey;
+import com.example.demo.survey.domain.QuestionDocument;
+import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.repository.ChoiceRepository;
 import com.example.demo.survey.repository.QuestionRepository;
 import com.example.demo.survey.repository.SurveyRepository;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
-public class SurveyServiceTest {
+public class SurveyDocumentServiceTest {
     @Autowired
     SurveyService surveyService;
     @Autowired
@@ -43,7 +43,7 @@ public class SurveyServiceTest {
     @Test @DisplayName("설문 레포지토리에 저장")
     void test1() throws Exception{
         // given
-        Survey survey
+        SurveyDocument surveyDocument
         SurveyRequestDto surveyRequest = SurveyRequestDto.builder()
                 .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
                 .title("설문 제목 테스트")
@@ -99,14 +99,14 @@ public class SurveyServiceTest {
         surveyService.createSurvey(surveyRequest);
 
         // then
-        Survey survey = surveyRepository.findAll().get(0);
-        assertEquals("설문 제목 테스트", survey.getTitle());
-        assertEquals("설문 설명 테스트", survey.getDescription());
-        assertEquals(0, survey.getType());
+        SurveyDocument surveyDocument = surveyRepository.findAll().get(0);
+        assertEquals("설문 제목 테스트", surveyDocument.getTitle());
+        assertEquals("설문 설명 테스트", surveyDocument.getDescription());
+        assertEquals(0, surveyDocument.getType());
         int i = 0;
-        for (Question question : survey.getQuestionList()) {
-            assertEquals("객관식 문제 " + i, question.getTitle());
-            assertEquals("Q"+i+"_1", question.getChoiceList().get(0));
+        for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
+            assertEquals("객관식 문제 " + i, questionDocument.getTitle());
+            assertEquals("Q"+i+"_1", questionDocument.getChoiceList().get(0));
             i++;
         }
     }

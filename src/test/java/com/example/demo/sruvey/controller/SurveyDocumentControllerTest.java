@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
-public class SurveyControllerTest {
+public class SurveyDocumentControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
