@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 @Table(name = "user_master")
 public class User {
 
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userCode;
     private Long kakaoId;
