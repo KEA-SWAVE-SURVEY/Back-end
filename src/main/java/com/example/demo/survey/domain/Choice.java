@@ -13,7 +13,7 @@ public class Choice {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "questionId")
-    private Question questionId;
+    private QuestionDocument questionDocumentId;
     private String content;
 
     @Builder

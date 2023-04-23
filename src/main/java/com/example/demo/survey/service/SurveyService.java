@@ -1,20 +1,21 @@
 package com.example.demo.survey.service;
 
 import com.example.demo.survey.domain.Choice;
-import com.example.demo.survey.domain.Question;
-import com.example.demo.survey.domain.Survey;
+import com.example.demo.survey.domain.QuestionDocument;
+import com.example.demo.survey.domain.SurveyDocument;
+import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.repository.ChoiceRepository;
 import com.example.demo.survey.repository.QuestionRepository;
 import com.example.demo.survey.repository.SurveyRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
@@ -28,20 +29,20 @@ public class SurveyService {
 
     public void createSurvey(SurveyRequestDto surveyRequest) {
         // todo : repo 저장, Survey - Question - Choice Connect 필요
-        Survey survey = Survey.builder()
+        SurveyDocument surveyDocument = SurveyDocument.builder()
                 .title(surveyRequest.getTitle())
                 .description(surveyRequest.getDescription())
                 .type(surveyRequest.getType())
                 .build();
         // survey repository save
-        surveyRepository.save(survey);
+        surveyRepository.save(surveyDocument);
 
-        Survey surveyById = surveyRepository.findById(survey.getId()).orElseGet(null);
+        SurveyDocument surveyDocumentById = surveyRepository.findById(surveyDocument.getId()).orElseGet(null);
 
         // 설문 문항
         for (QuestionRequestDto questionRequestDto : surveyRequest.getQuestionRequest()) {
-            Question question = new Question();
-            question.setSurvey_id(surveyById);
+            QuestionDocument questionDocument = new QuestionDocument();
+            questionDocument.setSurvey_Document_id(surveyDocumentById);
             // 선지 문항
             switch (questionRequestDto.getType()) {
                 case 2: // 객관식
@@ -54,7 +55,7 @@ public class SurveyService {
                     break;
                 case 1: // 찬부식, 주관식
                     //question.setTitle();
-                    question = new Question(
+                    questionDocument = new QuestionDocument(
                             questionRequestDto.getTitle(),
                             questionRequestDto.getType()
                     );
@@ -62,8 +63,8 @@ public class SurveyService {
                     break;
                 default:
             }
-            questionRepository.save(question);
-            surveyById.setQuestion(question);
+            questionRepository.save(questionDocument);
+            surveyDocumentById.setQuestion(questionDocument);
         }
 
     }
@@ -79,38 +80,29 @@ public class SurveyService {
         return choiceList;
 
     }
-//    private void makeQuestionInSurvey_number(SurveyRequestDto surveyRequest, Survey survey) {
-//        for (QuestionRequestDto questionRequest : surveyRequest.getQuestionRequest()) {
-//            Question question = Question.builder()
-//                    .title(questionRequest.getTitle())
-////                    .description(questionRequest.getDescription())
-//                    .build();
-//
-//            // Question 에 해당하는 답안(예를들어 1.치킨, 2.피자) 하나씩 받기
-//            for (ChoiceRequestDto choiceRequest : questionRequest.getChoiceList()) {
-//                Choice choice = Choice.builder()
-//                        .content(choiceRequest.getChoiceName())
-//                        .build();
-//
-//                // choice repository save
-//                choiceRepository.save(choice);
-//                question.setChoice(choice);
-//            }
-//
-//            // question repository save
-//            questionRepository.save(question);
-//            survey.setQuestion(question);
-//        }
-//    }
 
-    // todo : task 2 전체 설문 리스트 조회, 향후 페이징 처리시 쿼리 핸들링
-    public List<Survey> readSurveyList() {
+    // todo : 메인 페이지에서 설문 리스트 (유저 관리 페이지에서 설문 리스트 x)
+    public List<SurveyDocument> readSurveyList(HttpServletRequest request) throws Exception {
+
+        checkInvalidToken(request);
+
         return surveyRepository.findAll();
     }
 
-    // todo : task 3 상세 설문 리스트 조회 문항만 보여줄 수 있는
-    public Survey readSurveyDetail(Long id) {
-        Survey survey = surveyRepository.findById(id).get();
-        return survey;
+    // todo : task 3 상세 설문 리스트 조회
+
+    public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
+        SurveyDocument surveyDocument = surveyRepository.findById(id).get();
+
+        checkInvalidToken(request);
+
+        return surveyDocument;
+    }
+
+    // 회원 유효성 검사, token 존재하지 않으면 예외처리
+    private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
+        if(request.getHeader("Authorization") == null) {
+            throw new InvalidTokenException();
+        }
     }
 }

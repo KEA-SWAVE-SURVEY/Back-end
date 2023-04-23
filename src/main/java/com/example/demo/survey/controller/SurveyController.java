@@ -1,11 +1,11 @@
 package com.example.demo.survey.controller;
 
-import com.example.demo.survey.domain.Survey;
-import com.example.demo.survey.repository.SurveyRepository;
+import com.example.demo.survey.domain.SurveyDocument;
+import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.service.SurveyService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.aot.generate.AccessControl;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,12 +25,12 @@ public class SurveyController {
     }
 
     @GetMapping(value = "/api/survey-list")
-    public List<Survey> readList() {
-        return surveyService.readSurveyList();
+    public List<SurveyDocument> readList(@RequestHeader HttpServletRequest request) throws Exception {
+        return surveyService.readSurveyList(request);
     }
 
     @GetMapping(value = "/api/survey-list/{id}")
-    public Survey readDetail(@PathVariable Long id) {
-        return surveyService.readSurveyDetail(id);
+    public SurveyDocument readDetail(@RequestHeader HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+        return surveyService.readSurveyDetail(request, id);
     }
 }

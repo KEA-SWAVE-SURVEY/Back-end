@@ -6,12 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
 @NoArgsConstructor
-public class Question {
+public class QuestionDocument {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
@@ -21,12 +20,12 @@ public class Question {
 
     @ManyToOne
     @JoinColumn(name = "survey_id")
-    private Survey survey_id;
+    private SurveyDocument survey_Document_id;
 
     // 생성자 오버로딩
     @Builder
     // 객관식 생성자
-    public Question(String title, int questionType, List<Choice> choiceList) {
+    public QuestionDocument(String title, int questionType, List<Choice> choiceList) {
         this.title = title;
         this.questionType = questionType;
         this.choiceList = choiceList;
@@ -34,7 +33,7 @@ public class Question {
 
     @Builder
     // 주관식, 찬부신 생성자
-    public Question(String title, int questionType) {
+    public QuestionDocument(String title, int questionType) {
         this.title = title;
         this.questionType = questionType;
     }
