@@ -14,8 +14,9 @@ import java.sql.Timestamp;
 @Table(name = "user_master")
 public class User {
 
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userCode;
     private Long kakaoId;
     private String kakaoProfileImg;
 

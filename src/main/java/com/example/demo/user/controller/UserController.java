@@ -38,7 +38,7 @@ public class UserController {
     public ResponseEntity<Object> getCurrentUser(HttpServletRequest request) { //(1)
 
         User user = userService.getUser(request);
-        System.out.println(user.getId());
+        System.out.println(user.getUserCode());
         System.out.println(user.getKakaoEmail());
         return ResponseEntity.ok().body(user);
     }
@@ -47,7 +47,7 @@ public class UserController {
     public ResponseEntity<Object> CurrentUser(HttpServletRequest request,@RequestBody String data) { //(1)
 
         User user = userService.getUser(request);
-        System.out.println(user.getId());
+        System.out.println(user.getUserCode());
         System.out.println(user.getKakaoEmail());
         System.out.println(user.getKakaoNickname());
         System.out.println(data);
