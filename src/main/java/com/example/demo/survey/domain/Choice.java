@@ -10,14 +10,16 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Choice {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "choice_id")
     private Long id;
     @ManyToOne
     @JoinColumn(name = "questionDocumentId")
+    @Column(name = "question_id")
     private QuestionDocument questionDocumentId;
-    private String content;
+    private String title;
 
     @Builder
-    public Choice(Long id, String content) {
-        this.content = content;
+    public Choice(String title) {
+        this.title = title;
     }
 }

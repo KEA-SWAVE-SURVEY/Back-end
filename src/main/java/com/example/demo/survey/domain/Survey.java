@@ -17,10 +17,13 @@ import java.util.List;
 public class Survey {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "survey_id")
     private Long id;
     @OneToMany(fetch = FetchType.LAZY)
+    @Column(name = "survey_documentList")
     private List<SurveyDocument> surveyDocumentList;
     @OneToMany(fetch = FetchType.LAZY)
+    @Column(name = "survey_responseList")
     private List<SurveyResponse> surveyResponseList;
 
     // List 에 survey Document & Response 를 저장할 method

@@ -1,9 +1,6 @@
 package com.example.demo.survey.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,9 +10,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class QuestionResponse {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "question_response_id")
     private Long id;
+    @Column(name = "question_type")
     private int type;
+    @Column(name = "choice_answer")
     private String checkAnswer;
+
+    @JoinColumn(name = "survey_response_id")
+    SurveyResponse survey_response_id;
 
     @Builder
     public QuestionResponse(int type, String checkAnswer) {

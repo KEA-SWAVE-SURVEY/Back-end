@@ -48,7 +48,7 @@ public class SurveyService {
                 case 2: // 객관식
                     Choice newChoice = new Choice();
                     for (Choice choice : linkChoiceToQuestion(questionRequestDto)) {
-                        newChoice.setContent(choice.getContent());
+                        newChoice.setTitle(choice.getTitle());
                         //newChoice.setChoice(choice); // choice question 의 choice list 에 넣어준다
                         choiceRepository.save(choice); // choice repository 에 저장
                     }
@@ -73,7 +73,7 @@ public class SurveyService {
         List<Choice> choiceList = new ArrayList<>();
         for (ChoiceRequestDto choiceRequestDto : questionRequestDto.getChoiceList()) {
             Choice choice = Choice.builder()
-                    .content(choiceRequestDto.getChoiceName()).build();
+                    .title(choiceRequestDto.getChoiceName()).build();
             choiceList.add(choice);
         }
 
