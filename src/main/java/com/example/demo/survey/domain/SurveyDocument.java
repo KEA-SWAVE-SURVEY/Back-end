@@ -17,7 +17,7 @@ public class SurveyDocument {
     private String title;
     private int type; // DTO 에서 Integer로 받고 String으로 DB 저장
     private String description;
-    @OneToMany(mappedBy = "survey_id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "survey_Document_id", fetch = FetchType.LAZY)
     // todo 주관식, 찬부식일 경우 null 에러 무시
     private List<QuestionDocument> questionDocumentList;
 

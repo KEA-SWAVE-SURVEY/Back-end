@@ -15,11 +15,11 @@ public class QuestionDocument {
     private Long id;
     private String title;
     private int questionType;
-    @OneToMany(mappedBy = "questionId", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "questionDocumentId", fetch = FetchType.LAZY)
     private List<Choice> choiceList;
 
     @ManyToOne
-    @JoinColumn(name = "survey_id")
+    @JoinColumn(name = "survey_Document_id")
     private SurveyDocument survey_Document_id;
 
     // 생성자 오버로딩

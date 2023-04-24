@@ -17,12 +17,12 @@ public class User {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userCode;
-    private Long kakaoId;
-    private String kakaoProfileImg;
+    private Long id;
+    private String profileImg;
 
-    private String kakaoNickname;
+    private String nickname;
 
-    private String kakaoEmail;
+    private String email;
 
     private String userRole;
 
@@ -30,13 +30,13 @@ public class User {
     private Timestamp createTime;
 
     @Builder
-    public User(Long kakaoId, String kakaoProfileImg, String kakaoNickname,
-                String kakaoEmail, String userRole) {
+    public User(Long id, String profileImg, String nickname,
+                String email, String userRole) {
 
-        this.kakaoId = kakaoId;
-        this.kakaoProfileImg = kakaoProfileImg;
-        this.kakaoNickname = kakaoNickname;
-        this.kakaoEmail = kakaoEmail;
+        this.id = id;
+        this.profileImg = profileImg;
+        this.nickname = nickname;
+        this.email = email;
         this.userRole = userRole;
     }
 

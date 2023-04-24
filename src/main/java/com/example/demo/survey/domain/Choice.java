@@ -12,7 +12,7 @@ public class Choice {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "questionId")
+    @JoinColumn(name = "questionDocumentId")
     private QuestionDocument questionDocumentId;
     private String content;
 
