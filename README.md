@@ -1,4 +1,4 @@
-# Develope Environments
+# Develop Environments
 ## Version
 1. Spring Boot Version : 3.0.5
 2. JDK : 17

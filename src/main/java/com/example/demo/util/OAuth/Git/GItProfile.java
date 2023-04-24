@@ -1,11 +1,11 @@
-package com.example.demo.util.OAuth.Google;
+package com.example.demo.util.OAuth.Git;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true) // sub 필드를 무시하도록 설정
-public class GoogleProfile {
+public class GItProfile {
 
     public Long id;
     public String connected_at;
