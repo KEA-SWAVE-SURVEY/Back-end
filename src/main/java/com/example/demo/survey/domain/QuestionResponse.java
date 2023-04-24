@@ -17,8 +17,9 @@ public class QuestionResponse {
     @Column(name = "choice_answer")
     private String checkAnswer;
 
+    @ManyToOne
     @JoinColumn(name = "survey_response_id")
-    SurveyResponse survey_response_id;
+    private SurveyResponse survey_response_id;
 
     @Builder
     public QuestionResponse(int type, String checkAnswer) {
