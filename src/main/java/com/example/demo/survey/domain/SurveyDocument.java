@@ -26,8 +26,13 @@ public class SurveyDocument {
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
+    @ManyToOne
+    @JoinColumn(name = "survey_id")
+    private Survey survey;
+
     @Builder
-    public SurveyDocument(Long id, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
+    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
+        this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;

@@ -3,6 +3,7 @@ package com.example.demo.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.example.demo.user.domain.User;
+import com.example.demo.user.exception.UserNotFoundException;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.util.OAuth.Git.GItProfile;
 import com.example.demo.util.OAuth.Google.GoogleProfile;
@@ -23,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import java.util.Date;
+import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -346,7 +348,9 @@ public class UserService2 {
     public User getUser(HttpServletRequest request) { //(1)
         Long userCode = (Long) request.getAttribute("userCode");
 
-        User user = userRepository.findByUserCode(userCode);
+        //회원 정보 조회 검사
+        User user = userRepository.findByUserCode(userCode)
+                .orElseThrow(UserNotFoundException::new);
 
         return user;
     }

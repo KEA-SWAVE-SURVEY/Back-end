@@ -1,4 +1,8 @@
-package com.example.demo.util.OAuth;
+/**
+ * util.cors.WebMvcConfig 로 수정
+ */
+
+package com.example.demo.util.cors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -18,8 +18,8 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @PostMapping(value = "/api/create")
-    public String create(@RequestBody SurveyRequestDto surveyForm) {
-        surveyService.createSurvey(surveyForm);
+    public String create(@RequestHeader HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws InvalidTokenException {
+        surveyService.createSurvey(request, surveyForm);
 
         return "Success";
     }

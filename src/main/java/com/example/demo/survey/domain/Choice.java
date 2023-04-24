@@ -18,7 +18,8 @@ public class Choice {
     private String title;
 
     @Builder
-    public Choice(String title) {
+    public Choice(String title, QuestionDocument question_id) {
+        this.question_id = question_id;
         this.title = title;
     }
 }
