@@ -22,7 +22,7 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 @ConditionalOnDefaultWebSecurity
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-public class SecurityConfig {
+public class SecurityConfig{
 
     @Autowired
     UserRepository userRepository;
@@ -39,7 +39,8 @@ public class SecurityConfig {
 
     @Bean
     @Order(SecurityProperties.BASIC_AUTH_ORDER)
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http.csrf().disable()
                 .sessionManagement()  // session 을 사용하지 않음
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
