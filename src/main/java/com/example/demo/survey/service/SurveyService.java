@@ -42,7 +42,7 @@ public class SurveyService {
         // 설문 문항
         for (QuestionRequestDto questionRequestDto : surveyRequest.getQuestionRequest()) {
             QuestionDocument questionDocument = new QuestionDocument();
-            questionDocument.setSurvey_Document_id(surveyDocumentById);
+            questionDocument.setSurvey_document_id(surveyDocumentById);
             // 선지 문항
             switch (questionRequestDto.getType()) {
                 case 2: // 객관식
