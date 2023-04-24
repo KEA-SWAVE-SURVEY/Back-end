@@ -48,3 +48,6 @@ out/
 /build
 
 npm-debug.log*
+
+#properties
+.properties

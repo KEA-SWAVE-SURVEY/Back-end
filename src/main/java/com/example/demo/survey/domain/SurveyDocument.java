@@ -13,12 +13,17 @@ import java.util.List;
 public class SurveyDocument {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "survey_document_id")
     private Long id;
+    @Column(name = "survey_title")
     private String title;
-    private int type; // DTO 에서 Integer로 받고 String으로 DB 저장
+    @Column(name = "survey_type")
+    private int type;
+    @Column(name = "survey_description")
     private String description;
-    @OneToMany(mappedBy = "survey_Document_id", fetch = FetchType.LAZY)
-    // todo 주관식, 찬부식일 경우 null 에러 무시
+
+    @OneToMany(mappedBy = "survey_document_id", fetch = FetchType.LAZY)
+    @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
     @Builder

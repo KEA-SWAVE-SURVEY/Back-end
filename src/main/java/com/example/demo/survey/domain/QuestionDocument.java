@@ -12,14 +12,19 @@ import java.util.List;
 @NoArgsConstructor
 public class QuestionDocument {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "question_id")
     private Long id;
+    @Column(name = "question_title")
     private String title;
+    @Column(name = "question_type")
     private int questionType;
     @OneToMany(mappedBy = "questionDocumentId", fetch = FetchType.LAZY)
+    @Column(name = "choice_list")
     private List<Choice> choiceList;
 
     @ManyToOne
-    @JoinColumn(name = "survey_Document_id")
+    @JoinColumn(name = "survey_document_id")
+    @Column(name = "survey_id")
     private SurveyDocument survey_Document_id;
 
     // 생성자 오버로딩
