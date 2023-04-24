@@ -1,5 +1,6 @@
 package com.example.demo.survey.domain;
 
+import com.example.demo.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -19,10 +20,13 @@ public class Survey {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "survey_id")
     private Long id;
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToOne
+    @JoinColumn(name = "user_Id")
+    private User user;
+    @OneToMany(mappedBy = "survey_id", fetch = FetchType.LAZY)
     @Column(name = "survey_documentList")
     private List<SurveyDocument> surveyDocumentList;
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "survey_id", fetch = FetchType.LAZY)
     @Column(name = "survey_responseList")
     private List<SurveyResponse> surveyResponseList;
 
@@ -35,7 +39,8 @@ public class Survey {
     }
 
     @Builder
-    public Survey(List<SurveyDocument> surveyDocumentList, List<SurveyResponse> surveyResponseList) {
+    public Survey(User user, List<SurveyDocument> surveyDocumentList, List<SurveyResponse> surveyResponseList) {
+        this.user = user;
         this.surveyDocumentList = surveyDocumentList;
         this.surveyResponseList = surveyResponseList;
     }

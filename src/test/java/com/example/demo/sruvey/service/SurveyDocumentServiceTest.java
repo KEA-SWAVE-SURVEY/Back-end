@@ -2,9 +2,9 @@ package com.example.demo.sruvey.service;
 
 import com.example.demo.survey.domain.QuestionDocument;
 import com.example.demo.survey.domain.SurveyDocument;
-import com.example.demo.survey.repository.ChoiceRepository;
-import com.example.demo.survey.repository.QuestionRepository;
-import com.example.demo.survey.repository.SurveyRepository;
+import com.example.demo.survey.repository.choice.ChoiceRepository;
+import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
+import com.example.demo.survey.repository.survey.SurveyRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
@@ -31,7 +31,7 @@ public class SurveyDocumentServiceTest {
     @Autowired
     SurveyRepository surveyRepository;
     @Autowired
-    QuestionRepository questionRepository;
+    QuestionDocumentRepository questionDocumentRepository;
     @Autowired
     ChoiceRepository choiceRepository;
 
@@ -43,7 +43,6 @@ public class SurveyDocumentServiceTest {
     @Test @DisplayName("설문 레포지토리에 저장")
     void test1() throws Exception{
         // given
-        SurveyDocument surveyDocument
         SurveyRequestDto surveyRequest = SurveyRequestDto.builder()
                 .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
                 .title("설문 제목 테스트")
@@ -96,7 +95,7 @@ public class SurveyDocumentServiceTest {
         surveyRequest.setQuestionRequest(setQuestions);
 
         // when
-        surveyService.createSurvey(surveyRequest);
+        surveyService.createSurvey(request, surveyRequest);
 
         // then
         SurveyDocument surveyDocument = surveyRepository.findAll().get(0);

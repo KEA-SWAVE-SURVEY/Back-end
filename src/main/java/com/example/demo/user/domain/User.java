@@ -1,5 +1,6 @@
 package com.example.demo.user.domain;
 
+import com.example.demo.survey.domain.Survey;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class User {
 
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_Id")
     private Long userCode;
     private Long id;
     private String profileImg;
@@ -25,6 +27,8 @@ public class User {
     private String email;
 
     private String userRole;
+    @OneToOne(mappedBy = "user_Id")
+    private Survey survey;
 
     @CreationTimestamp //(4)
     private Timestamp createTime;
