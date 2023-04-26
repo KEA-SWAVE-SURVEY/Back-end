@@ -27,7 +27,8 @@ public class User {
     private String email;
 
     private String userRole;
-    @OneToOne(mappedBy = "user_Id")
+
+    @OneToOne(mappedBy = "user")
     private Survey survey;
 
     @CreationTimestamp //(4)
