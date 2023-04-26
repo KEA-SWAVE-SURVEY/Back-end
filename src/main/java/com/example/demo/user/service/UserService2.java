@@ -126,6 +126,7 @@ public class UserService2 {
         }
     }
 
+    // SaveUserAndGetToken 중복..?
     public User saveUser(String token, String provider) {
         Object profile = null;
         User user = null;
@@ -283,8 +284,9 @@ public class UserService2 {
         if (provider.equals("kakao")) {
             KakaoProfile profile = findKakaoProfile(token);
 
+            //회원 정보 조회 by Email
             User user = userRepository.findByEmail(profile.getKakao_account().getEmail());
-            if(user == null) {
+            if (user == null) {
                 user = User.builder()
                         .id(profile.getId())
                         .profileImg(profile.getKakao_account().getProfile().getProfile_image_url())
@@ -293,13 +295,16 @@ public class UserService2 {
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
+            } else {
+                log.info("기존 회원 -> 회원 가입 건너 뜀");
             }
-
             return createToken(user);
         } else if (provider.equals("google")) {
             GoogleProfile profile = findGoogleProfile(token);
 
+            //회원 정보 조회 by Email
             User user = userRepository.findByEmail(profile.getEmail());
+            //새로운 회원이면 등록
             if(user == null) {
                 user = User.builder()
                         .id(profile.getId())
@@ -309,12 +314,15 @@ public class UserService2 {
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
+            } else {
+                log.info("기존 회원 -> 회원 가입 건너 뜀");
             }
-
+            //기존 회원이면 저장 건너뛰고 토큰 생성
             return createToken(user);
         }else if (provider.equals("git")) {
             GItProfile profile = findGitProfile(token);
 
+            //회원 정보 조회 by Email
             User user = userRepository.findByEmail(profile.getEmail());
             if(user == null) {
                 user = User.builder()
@@ -325,8 +333,9 @@ public class UserService2 {
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
+            } else {
+                log.info("기존 회원 -> 회원 가입 건너 뜀");
             }
-
             return createToken(user);
         } else {
             throw new RuntimeException("Unsupported provider: " + provider);

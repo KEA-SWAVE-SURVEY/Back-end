@@ -5,46 +5,38 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Entity
 @NoArgsConstructor
-public class QuestionDocument {
+public class QuestionAnswer {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "question_id")
+    @Column(name = "question_answer_id")
     private Long id;
     @Column(name = "question_title")
     private String title;
     @Column(name = "question_type")
     private int questionType;
-
-    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY)
-    @Column(name = "choice_list")
-    private List<Choice> choiceList;
+    @Column(name = "choice_answer")
+    private String checkAnswer;
 
     @ManyToOne
-    @JoinColumn(name = "survey_document_id")
-    private SurveyDocument survey_document_id;
+    @JoinColumn(name = "survey_answer_id")
+    private SurveyAnswer survey_answer_id;
 
     // 생성자 오버로딩
     @Builder
     // 객관식 생성자
-    public QuestionDocument(SurveyDocument survey_document_id, String title, int questionType, List<Choice> choiceList) {
-        this.survey_document_id = survey_document_id;
+    public QuestionAnswer(SurveyAnswer survey_answer_id, String title, int questionType, String checkAnswer) {
+        this.survey_answer_id = survey_answer_id;
         this.title = title;
         this.questionType = questionType;
-        this.choiceList = choiceList;
+        this.checkAnswer = checkAnswer;
     }
 
     @Builder
     // 주관식, 찬부신 생성자
-    public QuestionDocument(String title, int questionType) {
+    public QuestionAnswer(String title, int questionType) {
         this.title = title;
         this.questionType = questionType;
-    }
-
-    public void setChoice(Choice choice) {
-        this.choiceList.add(choice);
     }
 }

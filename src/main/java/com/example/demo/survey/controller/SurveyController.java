@@ -3,6 +3,7 @@ package com.example.demo.survey.controller;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.request.SurveyRequestDto;
+import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.survey.service.SurveyService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,12 @@ public class SurveyController {
     @GetMapping(value = "/api/survey-list/{id}")
     public SurveyDocument readDetail(@RequestHeader HttpServletRequest request, @PathVariable Long id) throws Exception {
         return surveyService.readSurveyDetail(request, id);
+    }
+
+    @PostMapping(value = "/api/create-response")
+    public String createResponse(@RequestHeader HttpServletRequest request, @RequestBody SurveyResponseDto surveyForm) throws InvalidTokenException {
+        surveyService.createSurveyAnswer(request, surveyForm);
+
+        return "Success";
     }
 }

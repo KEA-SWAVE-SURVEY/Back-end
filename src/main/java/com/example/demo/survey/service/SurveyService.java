@@ -1,17 +1,18 @@
 package com.example.demo.survey.service;
 
-import com.example.demo.survey.domain.Choice;
-import com.example.demo.survey.domain.QuestionDocument;
-import com.example.demo.survey.domain.Survey;
-import com.example.demo.survey.domain.SurveyDocument;
+import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
+import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
 import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
 import com.example.demo.survey.repository.survey.SurveyRepository;
+import com.example.demo.survey.repository.surveyAnswer.SurveyAnswerRepository;
 import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
+import com.example.demo.survey.response.QuestionResponseDto;
+import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
@@ -19,9 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
@@ -34,6 +33,8 @@ public class SurveyService {
     private final SurveyRepository surveyRepository;
     private final SurveyDocumentRepository surveyDocumentRepository;
     private final QuestionDocumentRepository questionDocumentRepository;
+    private final SurveyAnswerRepository surveyAnswerRepository;
+    private final QuestionAnswerRepository questionAnswerRepository;
     private final ChoiceRepository choiceRepository;
 
     public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws Exception {
@@ -47,7 +48,7 @@ public class SurveyService {
             Survey survey = Survey.builder()
                     .user(userService.getUser(request))
                     .surveyDocumentList(null)
-                    .surveyDocumentList(null)
+                    .surveyAnswerList(null)
                     .build();
             surveyRepository.save(survey);
         }
@@ -106,6 +107,50 @@ public class SurveyService {
         checkInvalidToken(request);
 
         return surveyDocument;
+    }
+
+    // todo : task 4  설문 응답 생성
+    
+    public void createSurveyAnswer(HttpServletRequest request, SurveyResponseDto surveyResponse) throws InvalidTokenException {
+
+        // 유저 정보 받아오기
+        checkInvalidToken(request);
+
+        // 유저 정보에 해당하는 Survey 저장소 가져오기
+        // 응답이니 있을것 - 필요 유무?
+        Survey userSurvey = userService.getUser(request).getSurvey();
+        if(userSurvey == null) {
+            Survey survey = Survey.builder()
+                    .user(userService.getUser(request))
+                    .surveyDocumentList(null)
+                    .surveyAnswerList(null)
+                    .build();
+            surveyRepository.save(survey);
+        }
+
+        // Survey Response 를 Survey Answer 에 저장하기
+        SurveyAnswer surveyAnswer = SurveyAnswer.builder()
+                .survey(userSurvey)
+                .title(surveyResponse.getTitle())
+                .description(surveyResponse.getDescription())
+                .type(surveyResponse.getType())
+                .build();
+        surveyAnswerRepository.save(surveyAnswer);
+
+
+        // Survey Response 를 Question Answer 에 저장하기
+        surveyAnswerRepository.findById(surveyAnswer.getId());
+        for (QuestionResponseDto questionResponseDto : surveyResponse.getQuestionResponse()) {
+            // Question Answer 에 저장
+            QuestionAnswer questionAnswer = QuestionAnswer.builder()
+                    .survey_answer_id(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
+                    .title(questionResponseDto.getTitle())
+                    .questionType(questionResponseDto.getType())
+                    .checkAnswer(questionResponseDto.getAnswer())
+                    .build();
+            questionAnswerRepository.save(questionAnswer);
+        }
+
     }
 
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
