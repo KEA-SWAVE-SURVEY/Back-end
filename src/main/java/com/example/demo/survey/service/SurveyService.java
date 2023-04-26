@@ -138,10 +138,10 @@ public class SurveyService {
         surveyAnswerRepository.save(surveyAnswer);
 
 
-        // 설문 문항
+        // Survey Response 를 Question Answer 에 저장하기
         surveyAnswerRepository.findById(surveyAnswer.getId());
         for (QuestionResponseDto questionResponseDto : surveyResponse.getQuestionResponse()) {
-            // 설문 문항 저장
+            // Question Answer 에 저장
             QuestionAnswer questionAnswer = QuestionAnswer.builder()
                     .survey_answer_id(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
                     .title(questionResponseDto.getTitle())
@@ -149,9 +149,6 @@ public class SurveyService {
                     .checkAnswer(questionResponseDto.getAnswer())
                     .build();
             questionAnswerRepository.save(questionAnswer);
-
-            // todo : type 별로 구분
-            if(questionResponseDto.getType() == 1) continue; // 주관식
         }
 
     }

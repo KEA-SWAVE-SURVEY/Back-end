@@ -13,7 +13,7 @@ public class SurveyResponseDto {
     int type;
     List<QuestionResponseDto> questionResponse;
 
-//    @ConstructorProperties({"title", "description", "type", "questionRequest"})
+//    @ConstructorProperties({"title", "description", "type", "questionResponse"})
     @Builder
     public SurveyResponseDto(String title, String description, int type, List<QuestionResponseDto> questionResponse) {
         this.title = title;
