@@ -3,6 +3,7 @@ package com.example.demo.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.example.demo.user.domain.User;
+import com.example.demo.user.exception.UserNotFoundException;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.util.OAuth.Git.GItProfile;
 import com.example.demo.util.OAuth.Google.GoogleProfile;
@@ -347,7 +348,8 @@ public class UserService2 {
     public User getUser(HttpServletRequest request) { //(1)
         Long userCode = (Long) request.getAttribute("userCode");
 
-        User user = userRepository.findByUserCode(userCode);
+        User user = userRepository.findByUserCode(userCode)
+                .orElseThrow(UserNotFoundException::new);
 
         return user;
     }

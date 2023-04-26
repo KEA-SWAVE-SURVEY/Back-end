@@ -18,7 +18,7 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @PostMapping(value = "/api/create")
-    public String create(@RequestHeader HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws InvalidTokenException {
+    public String create(@RequestHeader HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws Exception {
         surveyService.createSurvey(request, surveyForm);
 
         return "Success";
@@ -30,7 +30,7 @@ public class SurveyController {
     }
 
     @GetMapping(value = "/api/survey-list/{id}")
-    public SurveyDocument readDetail(@RequestHeader HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+    public SurveyDocument readDetail(@RequestHeader HttpServletRequest request, @PathVariable Long id) throws Exception {
         return surveyService.readSurveyDetail(request, id);
     }
 }

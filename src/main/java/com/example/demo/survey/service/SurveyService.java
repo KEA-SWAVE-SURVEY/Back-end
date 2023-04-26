@@ -36,7 +36,7 @@ public class SurveyService {
     private final QuestionDocumentRepository questionDocumentRepository;
     private final ChoiceRepository choiceRepository;
 
-    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException {
+    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws Exception {
 
         // 유저 정보 받아오기
         checkInvalidToken(request);
@@ -100,7 +100,7 @@ public class SurveyService {
 
     // todo : task 3 상세 설문 리스트 조회
 
-    public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
+    public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws Exception {
         SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
 
         checkInvalidToken(request);
@@ -109,7 +109,7 @@ public class SurveyService {
     }
 
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
-    private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
+    private static void checkInvalidToken(HttpServletRequest request) throws Exception {
         if(request.getHeader("Authorization") == null) {
             throw new InvalidTokenException();
         }
