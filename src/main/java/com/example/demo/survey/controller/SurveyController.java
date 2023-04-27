@@ -1,5 +1,6 @@
 package com.example.demo.survey.controller;
 
+import com.example.demo.survey.domain.SurveyAnswer;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.request.SurveyRequestDto;
@@ -40,5 +41,10 @@ public class SurveyController {
         surveyService.createSurveyAnswer(request, surveyForm);
 
         return "Success";
+    }
+
+    @GetMapping(value = "/api/survey-response/{id}")
+    public SurveyAnswer readResponse(@RequestHeader HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+        return surveyService.readSurveyAnswer(request, id);
     }
 }

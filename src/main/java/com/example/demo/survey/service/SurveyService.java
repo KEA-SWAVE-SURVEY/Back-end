@@ -153,6 +153,15 @@ public class SurveyService {
 
     }
 
+    // todo : 분석에서 사용할 설문 응답 리스트 (어느 설문에 대한 응답인지 구분해서 불러올 필요있음)
+    public SurveyAnswer  readSurveyAnswer(HttpServletRequest request, Long id) throws InvalidTokenException {
+        SurveyAnswer surveyAnswer = surveyAnswerRepository.findById(id).get();
+
+        checkInvalidToken(request);
+
+        return surveyAnswer;
+    }
+
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
     private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
         if(request.getHeader("Authorization") == null) {
