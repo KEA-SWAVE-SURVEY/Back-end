@@ -1,6 +1,7 @@
 package com.example.demo.survey.service;
 
 import com.example.demo.survey.domain.*;
+import com.example.demo.survey.exception.InvalidPythonException;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
 import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
@@ -19,8 +20,10 @@ import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +31,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SurveyService {
 
     private final UserService2 userService;
@@ -44,6 +48,7 @@ public class SurveyService {
 
         // 유저 정보 받아오기
         checkInvalidToken(request);
+        log.info("유저 정보 받아옴");
 
         // 유저 정보에 해당하는 Survey 저장소 가져오기
         Survey userSurvey = userService.getUser(request).getSurvey();
@@ -154,8 +159,15 @@ public class SurveyService {
     }
 
     // todo : 파이썬으로 DocumentId 보내줌
-    public void giveDocumentIdtoPython(Long surveyDocumentId){}
+    public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
+        try {
+            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
+        } catch (IOException e) {
+            // 체크 예외 -> 런타임 커스텀 예외 변환 처리
+            throw new InvalidPythonException();
+        }
 
+    }
     // todo : 분석 응답
     public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
@@ -179,6 +191,7 @@ public class SurveyService {
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
     private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
         if(request.getHeader("Authorization") == null) {
+            log.info("error");
             throw new InvalidTokenException();
         }
     }

@@ -360,7 +360,6 @@ public class UserService2 {
         //회원 정보 조회 검사
         User user = userRepository.findByUserCode(userCode)
                 .orElseThrow(UserNotFoundException::new);
-
         return user;
     }
 }
