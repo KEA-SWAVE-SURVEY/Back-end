@@ -359,7 +359,6 @@ public class UserService2 {
 
         User user = userRepository.findByUserCode(userCode)
                 .orElseThrow(UserNotFoundException::new);
-
         return user;
     }
 }

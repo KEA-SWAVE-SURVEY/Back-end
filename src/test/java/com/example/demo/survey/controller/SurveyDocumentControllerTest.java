@@ -1,4 +1,4 @@
-package com.example.demo.sruvey.controller;
+package com.example.demo.survey.controller;
 
 import com.example.demo.survey.repository.survey.SurveyRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
