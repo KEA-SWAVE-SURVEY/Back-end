@@ -3,10 +3,12 @@ package com.example.demo.survey.response;
 import com.example.demo.survey.request.QuestionRequestDto;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
 public class SurveyResponseDto {
     String title;
     String description;

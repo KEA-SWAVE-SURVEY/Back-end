@@ -194,5 +194,6 @@ public class SurveyService {
             log.info("error");
             throw new InvalidTokenException();
         }
+        log.info("토큰 체크 완료");
     }
 }
