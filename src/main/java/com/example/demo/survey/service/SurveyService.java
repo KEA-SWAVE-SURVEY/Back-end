@@ -6,6 +6,7 @@ import com.example.demo.survey.repository.choice.ChoiceRepository;
 import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
 import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
 import com.example.demo.survey.repository.survey.SurveyRepository;
+import com.example.demo.survey.repository.surveyAnalyze.SurveyAnalyzeRepository;
 import com.example.demo.survey.repository.surveyAnswer.SurveyAnswerRepository;
 import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
@@ -36,6 +38,7 @@ public class SurveyService {
     private final SurveyAnswerRepository surveyAnswerRepository;
     private final QuestionAnswerRepository questionAnswerRepository;
     private final ChoiceRepository choiceRepository;
+    private final SurveyAnalyzeRepository surveyAnalyzeRepository;
 
     public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException {
 
@@ -111,29 +114,21 @@ public class SurveyService {
 
     // todo : task 4  설문 응답 생성
     
-    public void createSurveyAnswer(HttpServletRequest request, SurveyResponseDto surveyResponse) throws InvalidTokenException {
-
-        // 유저 정보 받아오기
-        checkInvalidToken(request);
-
-        // 유저 정보에 해당하는 Survey 저장소 가져오기
-        // 응답이니 있을것 - 필요 유무?
-        Survey userSurvey = userService.getUser(request).getSurvey();
-        if(userSurvey == null) {
-            Survey survey = Survey.builder()
-                    .user(userService.getUser(request))
-                    .surveyDocumentList(null)
-                    .surveyAnswerList(null)
-                    .build();
-            surveyRepository.save(survey);
-        }
+    public void createSurveyAnswer(HttpServletRequest request, SurveyResponseDto surveyResponse){
+        // Http request header 에 SurveyDocumentId 받아옴
+        Long surveyDocumentId = Long.valueOf(request.getHeader("SurveyDocumentId"));
+        // SurveyDocumentId를 통해 어떤 설문인지 가져옴
+        Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
+        // surveyDocument 의 Survey 가져옴
+        Survey survey = surveyDocument.get().getSurvey();
 
         // Survey Response 를 Survey Answer 에 저장하기
         SurveyAnswer surveyAnswer = SurveyAnswer.builder()
-                .survey(userSurvey)
+                .survey(survey)
                 .title(surveyResponse.getTitle())
                 .description(surveyResponse.getDescription())
                 .type(surveyResponse.getType())
+                .surveyDocumentId(surveyDocumentId)
                 .build();
         surveyAnswerRepository.save(surveyAnswer);
 
@@ -149,17 +144,36 @@ public class SurveyService {
                     .checkAnswer(questionResponseDto.getAnswer())
                     .build();
             questionAnswerRepository.save(questionAnswer);
-        }
 
+        }
+        // 저장된 설문 응답을 Survey 에 연결 및 저장
+        List<SurveyAnswer> surveyAnswerList = survey.getSurveyAnswerList();
+        surveyAnswerList.add(surveyAnswer);
+        survey.setSurveyAnswerList(surveyAnswerList);
+        surveyRepository.save(survey);
     }
 
-    // todo : 분석에서 사용할 설문 응답 리스트 (어느 설문에 대한 응답인지 구분해서 불러올 필요있음)
-    public SurveyAnswer  readSurveyAnswer(HttpServletRequest request, Long id) throws InvalidTokenException {
-        SurveyAnswer surveyAnswer = surveyAnswerRepository.findById(id).get();
+    // todo : 파이썬으로 DocumentId 보내줌
+    public void giveDocumentIdtoPython(Long surveyDocumentId){}
+
+    // todo : 분석 응답
+    public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+        //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
+        List<SurveyAnswer> surveyAnswerList = surveyAnswerRepository.findSurveyAnswersBySurveyDocumentId(surveyId);
 
         checkInvalidToken(request);
 
-        return surveyAnswer;
+        return surveyAnswerList;
+    }
+
+    // todo : 분석 상세 분석
+    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+        //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
+        SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
+
+        checkInvalidToken(request);
+
+        return surveyAnalyze;
     }
 
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
