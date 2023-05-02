@@ -14,6 +14,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -127,7 +131,7 @@ public class UserService2 {
     }
 
     // SaveUserAndGetToken 중복..?
-    public User saveUser(String token, String provider) {
+    public User saveUser(String token, String provider) throws ParseException {
         Object profile = null;
         User user = null;
         if (provider.equals("kakao")) {
@@ -163,13 +167,17 @@ public class UserService2 {
         } else if (provider.equals("git")) {
             profile = findGitProfile(token);
             user = userRepository.findByEmail(((GItProfile) profile).getEmail());
-
+            JSONParser parser = new JSONParser();
+            String strJson=(((GItProfile) profile).getEmail());
+            System.out.println(strJson);
+            JSONArray values = (JSONArray)parser.parse(strJson);
+            JSONObject value = (JSONObject)values.get(0);
             if (user == null) {
                 user = User.builder()
                         .id(((GItProfile) profile).getId())
                         .profileImg(((GItProfile) profile).getPicture())
                         .nickname(((GItProfile) profile).getName())
-                        .email(((GItProfile) profile).getEmail())
+                        .email((String)value.get("email"))
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
@@ -251,7 +259,7 @@ public class UserService2 {
 
         HttpEntity<MultiValueMap<String, String>> gitProfileRequest =
                 new HttpEntity<>(headers);
-
+        //spring oauth access token github server userinfo
         // Http 요청 (POST 방식) 후, response 변수에 응답을 받음
         ResponseEntity<String> gitProfileResponse = rt.exchange(
                 "https://api.github.com/user",
@@ -259,6 +267,18 @@ public class UserService2 {
                 gitProfileRequest,
                 String.class
         );
+        String name=null;
+        String picture=null;
+        try {
+            JSONParser parser = new JSONParser();
+            String userInfo = gitProfileResponse.getBody();
+            JSONObject jsonObject = (JSONObject) parser.parse(userInfo);
+            name = (String)jsonObject.get("login");
+            picture = (String)jsonObject.get("avatar_url");
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         //Git은 email 정보를 다시 한번 받아와야 함
         ResponseEntity<String> gitEmailResponse = rt.exchange(
@@ -272,7 +292,11 @@ public class UserService2 {
         GItProfile gitProfile = null;
         try {
             gitProfile = objectMapper.readValue(gitProfileResponse.getBody(), GItProfile.class);
+
             gitProfile.email = gitEmailResponse.getBody();
+            gitProfile.name=name;
+            gitProfile.picture=picture;
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -280,18 +304,20 @@ public class UserService2 {
         return gitProfile;
     }
 
-    public String SaveUserAndGetToken(String token, String provider) {
+    public String SaveUserAndGetToken(String token, String provider){
         if (provider.equals("kakao")) {
             KakaoProfile profile = findKakaoProfile(token);
 
             //회원 정보 조회 by Email
-            User user = userRepository.findByEmail(profile.getKakao_account().getEmail());
+//            User user = userRepository.findByEmail(profile.getKakao_account().getEmail());
+            User user = userRepository.findByEmailAndProvider(profile.getKakao_account().getEmail(),provider);
             if (user == null) {
                 user = User.builder()
                         .id(profile.getId())
                         .profileImg(profile.getKakao_account().getProfile().getProfile_image_url())
                         .nickname(profile.getKakao_account().getProfile().getNickname())
                         .email(profile.getKakao_account().getEmail())
+                        .provider(provider)
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
@@ -303,7 +329,8 @@ public class UserService2 {
             GoogleProfile profile = findGoogleProfile(token);
 
             //회원 정보 조회 by Email
-            User user = userRepository.findByEmail(profile.getEmail());
+//            User user = userRepository.findByEmail(profile.getEmail());
+            User user = userRepository.findByEmailAndProvider(profile.getEmail(),provider);
             //새로운 회원이면 등록
             if(user == null) {
                 user = User.builder()
@@ -311,6 +338,7 @@ public class UserService2 {
                         .profileImg(profile.getPicture())
                         .nickname(profile.getName())
                         .email(profile.getEmail())
+                        .provider(provider)
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
@@ -321,15 +349,27 @@ public class UserService2 {
             return createToken(user);
         }else if (provider.equals("git")) {
             GItProfile profile = findGitProfile(token);
+            JSONObject value = null;
+            try {
+                JSONParser parser = new JSONParser();
+                String strJson = (profile.getEmail());
+                System.out.println(strJson);
+                JSONArray values = (JSONArray) parser.parse(strJson);
+                value = (JSONObject) values.get(0);
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
 
             //회원 정보 조회 by Email
-            User user = userRepository.findByEmail(profile.getEmail());
+//            User user = userRepository.findByEmail((String)value.get("email"));
+            User user = userRepository.findByEmailAndProvider((String)value.get("email"),provider);
             if(user == null) {
                 user = User.builder()
                         .id(profile.getId())
                         .profileImg(profile.getPicture())
                         .nickname(profile.getName())
-                        .email(profile.getEmail())
+                        .email((String)value.get("email"))
+                        .provider(provider)
                         .userRole("ROLE_USER").build();
 
                 userRepository.save(user);
@@ -361,6 +401,7 @@ public class UserService2 {
         //회원 정보 조회 검사
         User user = userRepository.findByUserCode(userCode)
                 .orElseThrow(UserNotFoundException::new);
+
         return user;
     }
 }
