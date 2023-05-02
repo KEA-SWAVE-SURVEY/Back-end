@@ -26,6 +26,8 @@ public class SurveyDocument {
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
+    @Column(name = "survey_response_count")
+    private int responseCount;
     @ManyToOne
     @JoinColumn(name = "survey_id")
     private Survey survey;

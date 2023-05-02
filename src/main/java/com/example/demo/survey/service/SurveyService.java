@@ -169,7 +169,7 @@ public class SurveyService {
 
     }
     // todo : 분석 응답
-    public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+    public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws Exception {
         //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
         List<SurveyAnswer> surveyAnswerList = surveyAnswerRepository.findSurveyAnswersBySurveyDocumentId(surveyId);
 
@@ -179,7 +179,7 @@ public class SurveyService {
     }
 
     // todo : 분석 상세 분석
-    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws Exception {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
 

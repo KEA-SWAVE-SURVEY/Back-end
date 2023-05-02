@@ -19,24 +19,24 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @PostMapping(value = "/api/create")
-    public String create(@RequestHeader HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws Exception {
+    public String create(HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws Exception {
         surveyService.createSurvey(request, surveyForm);
 
         return "Success";
     }
 
     @GetMapping(value = "/api/survey-list")
-    public List<SurveyDocument> readList(@RequestHeader HttpServletRequest request) throws Exception {
+    public List<SurveyDocument> readList(HttpServletRequest request) throws Exception {
         return surveyService.readSurveyList(request);
     }
 
     @GetMapping(value = "/api/survey-list/{id}")
-    public SurveyDocument readDetail(@RequestHeader HttpServletRequest request, @PathVariable Long id) throws Exception {
+    public SurveyDocument readDetail(HttpServletRequest request, @PathVariable Long id) throws Exception {
         return surveyService.readSurveyDetail(request, id);
     }
 
     @PostMapping(value = "/api/create-response")
-    public String createResponse(@RequestHeader HttpServletRequest request, @RequestBody SurveyResponseDto surveyForm) throws InvalidTokenException {
+    public String createResponse(HttpServletRequest request, @RequestBody SurveyResponseDto surveyForm) throws InvalidTokenException {
         surveyService.createSurveyAnswer(request, surveyForm);
 
         return "Success";
