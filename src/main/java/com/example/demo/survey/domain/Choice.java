@@ -12,14 +12,19 @@ public class Choice {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "choice_id")
     private Long id;
+    @Column(name = "choice_title")
+    private String title;
+    @Column(name = "choice_count")
+    private int count;
+
     @ManyToOne
     @JoinColumn(name = "question_id")
     private QuestionDocument question_id;
-    private String title;
 
     @Builder
-    public Choice(String title, QuestionDocument question_id) {
-        this.question_id = question_id;
+    public Choice(String title, QuestionDocument question_id,  int count) {
         this.title = title;
+        this.question_id = question_id;
+        this.count = count;
     }
 }

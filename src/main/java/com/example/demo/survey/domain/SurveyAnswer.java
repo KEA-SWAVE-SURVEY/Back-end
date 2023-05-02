@@ -28,7 +28,7 @@ public class SurveyAnswer {
     @Column(name = "survey_document_Id")
     private Long surveyDocumentId;
 
-    @OneToMany(mappedBy = "survey_answer_id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "surveyAnswerId", fetch = FetchType.LAZY)
     @Column(name = "content")
     private List<QuestionAnswer> questionanswersList;
     @ManyToOne

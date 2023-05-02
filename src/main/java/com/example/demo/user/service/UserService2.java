@@ -334,6 +334,7 @@ public class UserService2 {
 
                 userRepository.save(user);
             } else {
+                log.info(String.valueOf(user));
                 log.info("기존 회원 -> 회원 가입 건너 뜀");
             }
             return createToken(user);

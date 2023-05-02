@@ -25,13 +25,13 @@ public class QuestionDocument {
 
     @ManyToOne
     @JoinColumn(name = "survey_document_id")
-    private SurveyDocument survey_document_id;
+    private SurveyDocument surveyDocumentId;
 
     // 생성자 오버로딩
     @Builder
     // 객관식 생성자
-    public QuestionDocument(SurveyDocument survey_document_id, String title, int questionType, List<Choice> choiceList) {
-        this.survey_document_id = survey_document_id;
+    public QuestionDocument(SurveyDocument surveyDocument, String title, int questionType, List<Choice> choiceList) {
+        this.surveyDocumentId = surveyDocument;
         this.title = title;
         this.questionType = questionType;
         this.choiceList = choiceList;
