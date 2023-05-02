@@ -30,25 +30,34 @@ public class SurveyDocument {
     @Column(name = "url")
     private String url;
 
-    @OneToMany(mappedBy = "survey_document_id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
+
+    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
+    @Column(name = "analyze")
+    private List<SurveyAnalyze> surveyAnalyzeList;
 
     @ManyToOne
     @JoinColumn(name = "survey_id")
     private Survey survey;
 
     @Builder
-    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
+    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, List<SurveyAnalyze> surveyAnalyzeList) {
         this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;
         this.questionDocumentList = questionDocumentList;
+        this.surveyAnalyzeList = surveyAnalyzeList;
     }
 
     // 문항 list 에 넣어주기
     public void setQuestion(QuestionDocument questionDocument) {
         this.questionDocumentList.add(questionDocument);
+    }
+    // 문항 analyze 에 넣어주기
+    public void setAnalyze(SurveyAnalyze surveyAnalyze) {
+        this.surveyAnalyzeList.add(surveyAnalyze);
     }
 }

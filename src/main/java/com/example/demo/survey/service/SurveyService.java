@@ -54,12 +54,12 @@ public class SurveyService {
         // 유저 정보에 해당하는 Survey 저장소 가져오기
         Survey userSurvey = userService.getUser(request).getSurvey();
         if(userSurvey == null) {
-            Survey survey = Survey.builder()
+            userSurvey = Survey.builder()
                     .user(userService.getUser(request))
                     .surveyDocumentList(null)
                     .surveyAnswerList(null)
                     .build();
-            surveyRepository.save(survey);
+            surveyRepository.save(userSurvey);
         }
 
         // Survey Request 를 Survey Document 에 저장하기
@@ -77,7 +77,7 @@ public class SurveyService {
         for (QuestionRequestDto questionRequestDto : surveyRequest.getQuestionRequest()) {
             // 설문 문항 저장
             QuestionDocument questionDocument = QuestionDocument.builder()
-                    .survey_document_id(surveyDocumentRepository.findById(surveyDocument.getId()).get())
+                    .surveyDocument(surveyDocumentRepository.findById(surveyDocument.getId()).get())
                     .title(questionRequestDto.getTitle())
                     .questionType(questionRequestDto.getType())
                     .build();
@@ -127,9 +127,7 @@ public class SurveyService {
     }
 
     // 설문 응답 저장
-    public void createSurveyAnswer(HttpServletRequest request, SurveyResponseDto surveyResponse){
-        // Http request header 에 SurveyDocumentId 받아옴
-        Long surveyDocumentId = Long.valueOf(request.getHeader("SurveyDocumentId"));
+    public void createSurveyAnswer(Long surveyDocumentId, SurveyResponseDto surveyResponse){
         // SurveyDocumentId를 통해 어떤 설문인지 가져옴
         Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
         // surveyDocument 의 Survey 가져옴

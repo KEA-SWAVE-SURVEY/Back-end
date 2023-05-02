@@ -45,9 +45,9 @@ public class SurveyController {
 
     // 설문 참여 응답 생성 -> 분석 생성
     @PostMapping(value = "/api/create-response/{surveyId}")
-    public String createResponseAndSaveAnalyze(HttpServletRequest request, @RequestBody SurveyResponseDto surveyForm, @PathVariable Long surveyId) throws InvalidTokenException {
+    public String createResponseAndSaveAnalyze(@RequestBody SurveyResponseDto surveyForm, @PathVariable Long surveyId) throws InvalidTokenException {
         // 설문 응답 저장
-        surveyService.createSurveyAnswer(request, surveyForm);
+        surveyService.createSurveyAnswer(surveyId, surveyForm);
         // 설문 분석 -> 저장 (python)
         surveyService.giveDocumentIdtoPython(surveyId);
         return "Success";
