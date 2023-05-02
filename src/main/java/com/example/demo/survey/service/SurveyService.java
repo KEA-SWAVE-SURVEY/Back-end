@@ -68,6 +68,7 @@ public class SurveyService {
                 .description(surveyRequest.getDescription())
                 .type(surveyRequest.getType())
                 .build();
+        surveyDocument.setResponseCount(0);
         surveyDocumentRepository.save(surveyDocument);
 
 
@@ -156,6 +157,9 @@ public class SurveyService {
         surveyAnswerList.add(surveyAnswer);
         survey.setSurveyAnswerList(surveyAnswerList);
         surveyRepository.save(survey);
+
+        // Answer 추가 될 때마다 Survey 응답자 수 증가
+        surveyDocumentRepository.updateAnswerCount(surveyDocumentId);
     }
 
     // todo : 파이썬으로 DocumentId 보내줌
