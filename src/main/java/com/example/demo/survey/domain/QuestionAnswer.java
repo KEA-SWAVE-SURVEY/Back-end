@@ -16,27 +16,22 @@ public class QuestionAnswer {
     private String title;
     @Column(name = "question_type")
     private int questionType;
-    @Column(name = "choice_answer")
+    @Column(name = "check_answer")
     private String checkAnswer;
+    @Column(name = "check_answer_id")
+    private Long checkAnswerId;
 
     @ManyToOne
     @JoinColumn(name = "survey_answer_id")
-    private SurveyAnswer survey_answer_id;
+    private SurveyAnswer surveyAnswerId;
 
     // 생성자 오버로딩
     @Builder
-    // 객관식 생성자
-    public QuestionAnswer(SurveyAnswer survey_answer_id, String title, int questionType, String checkAnswer) {
-        this.survey_answer_id = survey_answer_id;
+    public QuestionAnswer(String title, SurveyAnswer surveyAnswerId, int questionType, String checkAnswer, Long checkAnswerId) {
         this.title = title;
         this.questionType = questionType;
+        this.surveyAnswerId = surveyAnswerId;
         this.checkAnswer = checkAnswer;
-    }
-
-    @Builder
-    // 주관식, 찬부신 생성자
-    public QuestionAnswer(String title, int questionType) {
-        this.title = title;
-        this.questionType = questionType;
+        this.checkAnswerId = checkAnswerId;
     }
 }

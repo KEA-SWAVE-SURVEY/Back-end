@@ -21,6 +21,14 @@ public class SurveyDocument {
     private int type;
     @Column(name = "survey_description")
     private String description;
+    @Column(name = "accept_response")
+    private boolean acceptResponse;
+    @Column(name = "survey_start_date")
+    private String startDate;
+    @Column(name = "survey_deadline")
+    private String deadline;
+    @Column(name = "url")
+    private String url;
 
     @OneToMany(mappedBy = "survey_document_id", fetch = FetchType.LAZY)
     @Column(name = "content")
