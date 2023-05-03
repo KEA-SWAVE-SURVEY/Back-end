@@ -6,3 +6,6 @@
 4. Build configuration
    - local: build in Spring Boot Terminal
    - server: Jenkins, docker
+
+
+GIT TEST
