@@ -398,7 +398,6 @@ public class UserService2 {
     public User getUser(HttpServletRequest request) { //(1)
         Long userCode = (Long) request.getAttribute("userCode");
 
-        //회원 정보 조회 검사
         User user = userRepository.findByUserCode(userCode)
                 .orElseThrow(UserNotFoundException::new);
 

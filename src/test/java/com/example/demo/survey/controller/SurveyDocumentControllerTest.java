@@ -1,6 +1,7 @@
 package com.example.demo.survey.controller;
 
 import com.example.demo.survey.repository.survey.SurveyRepository;
+import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.service.SurveyService;
@@ -50,8 +51,8 @@ public class SurveyDocumentControllerTest {
                 .type(0)
                 .build();
 
-        QuestionRequestDto questionRequest1 = new QuestionRequestDto("주관식 문제 1", 0);
-        QuestionRequestDto questionRequest2 = new QuestionRequestDto("주관식 문제 2", 0);
+        QuestionRequestDto questionRequest1 = new QuestionRequestDto("주관식 문제 1",0 ,new ArrayList<>());
+        QuestionRequestDto questionRequest2 = new QuestionRequestDto("주관식 문제 2", 0, new ArrayList<>());
 
         List<QuestionRequestDto> setQuestions = new ArrayList<>();
         setQuestions.add(questionRequest1);
