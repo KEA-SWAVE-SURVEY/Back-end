@@ -16,30 +16,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 public class UserController {
-
-//    @Autowired
-//    private UserService userService;
-
     @Autowired
     private UserService2 userService2;
-
-//    // 프론트에서 인가코드 받아오는 url
-//    @GetMapping("/oauth/token")
-//    public ResponseEntity getLogin(@RequestParam("code") String code) { //(1)
-//
-//        // 넘어온 인가 코드를 통해 access_token 발급
-//        OauthToken oauthToken = userService.getAccessToken(code);
-//
-//        // 발급 받은 accessToken 으로 카카오 회원 정보 DB 저장 후 JWT 를 생성
-//        String jwtToken = userService.SaveUserAndGetToken(oauthToken.getAccess_token());
-//
-//        HttpHeaders headers = new HttpHeaders();
-//
-//        // 1 param : header name(key), 2 param : header value
-//        headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
-//
-//        return ResponseEntity.ok().headers(headers).body("success");
-//    }
 
     // 구글 추가 버전, requestParam으로 provider 받음
     @PostMapping("/oauth/token")

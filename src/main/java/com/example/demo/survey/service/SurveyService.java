@@ -14,6 +14,7 @@ import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.response.QuestionResponseDto;
+import com.example.demo.survey.response.SurveyManageDto;
 import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
@@ -56,12 +57,12 @@ public class SurveyService {
         // 유저 정보에 해당하는 Survey 저장소 가져오기
         Survey userSurvey = userService.getUser(request).getSurvey();
         if(userSurvey == null) {
-            Survey survey = Survey.builder()
+            userSurvey = Survey.builder()
                     .user(userService.getUser(request))
                     .surveyDocumentList(null)
                     .surveyAnswerList(null)
                     .build();
-            surveyRepository.save(survey);
+            surveyRepository.save(userSurvey);
         }
 
         // Survey Request 를 Survey Document 에 저장하기
@@ -80,7 +81,7 @@ public class SurveyService {
         for (QuestionRequestDto questionRequestDto : surveyRequest.getQuestionRequest()) {
             // 설문 문항 저장
             QuestionDocument questionDocument = QuestionDocument.builder()
-                    .survey_document_id(surveyDocumentRepository.findById(surveyDocument.getId()).get())
+                    .surveyDocument(surveyDocumentRepository.findById(surveyDocument.getId()).get())
                     .title(questionRequestDto.getTitle())
                     .questionType(questionRequestDto.getType())
                     .build();
@@ -93,6 +94,7 @@ public class SurveyService {
                 Choice choice = Choice.builder()
                         .question_id(questionDocumentRepository.findById(questionDocument.getId()).get())
                         .title(choiceRequestDto.getChoiceName())
+                        .count(0)
                         .build();
                 choiceRepository.save(choice);
             }
@@ -127,11 +129,15 @@ public class SurveyService {
         return surveyDocument;
     }
 
-    // todo : task 4  설문 응답 생성
-    
-    public void createSurveyAnswer(HttpServletRequest request, SurveyResponseDto surveyResponse){
-        // Http request header 에 SurveyDocumentId 받아옴
-        Long surveyDocumentId = Long.valueOf(request.getHeader("SurveyDocumentId"));
+    // 설문 응답 참여
+    public SurveyDocument getParticipantSurvey(Long id){
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
+
+        return surveyDocument;
+    }
+
+    // 설문 응답 저장
+    public void createSurveyAnswer(Long surveyDocumentId, SurveyResponseDto surveyResponse){
         // SurveyDocumentId를 통해 어떤 설문인지 가져옴
         Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
         // surveyDocument 의 Survey 가져옴
@@ -153,13 +159,19 @@ public class SurveyService {
         for (QuestionResponseDto questionResponseDto : surveyResponse.getQuestionResponse()) {
             // Question Answer 에 저장
             QuestionAnswer questionAnswer = QuestionAnswer.builder()
-                    .survey_answer_id(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
+                    .surveyAnswerId(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
                     .title(questionResponseDto.getTitle())
                     .questionType(questionResponseDto.getType())
                     .checkAnswer(questionResponseDto.getAnswer())
+                    .checkAnswerId(questionResponseDto.getAnswerId())
                     .build();
             questionAnswerRepository.save(questionAnswer);
-
+            //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
+            Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
+            if (findChoice.isPresent()) {
+                findChoice.get().setCount(findChoice.get().getCount() + 1);
+                choiceRepository.save(findChoice.get());
+            }
         }
         // 저장된 설문 응답을 Survey 에 연결 및 저장
         List<SurveyAnswer> surveyAnswerList = survey.getSurveyAnswerList();
@@ -183,12 +195,71 @@ public class SurveyService {
     }
     // todo : 분석 응답
     public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws Exception {
+
+    // 분석 응답 리스트 불러오기 (보류)
+    public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
         List<SurveyAnswer> surveyAnswerList = surveyAnswerRepository.findSurveyAnswersBySurveyDocumentId(surveyId);
 
         checkInvalidToken(request);
 
         return surveyAnswerList;
+    }
+
+    // todo : 분석 응답 (문항 별 응답 수 불러오기) (Count)
+    public SurveyDocument readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+        checkInvalidToken(request);
+
+        //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
+        Optional<SurveyDocument> byId = surveyDocumentRepository.findById(surveyId);
+        if (byId.isPresent()) {
+            SurveyDocument surveyDocument = byId.get();
+            return surveyDocument;
+        } else {
+            throw new RuntimeException("Survey with ID " + surveyId + " not found.");
+        }
+    }
+
+    // todo : 분석 관리 Get
+    public SurveyManageDto readSurveyMange(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+        checkInvalidToken(request);
+
+        //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
+        Optional<SurveyDocument> findSurvey = surveyDocumentRepository.findById(surveyId);
+
+        if (findSurvey.isPresent()) {
+            SurveyManageDto manage = new SurveyManageDto();
+            manage.builder()
+                    .acceptResponse(findSurvey.get().isAcceptResponse())
+                    .startDate(findSurvey.get().getStartDate())
+                    .deadline(findSurvey.get().getDeadline())
+                    .url(findSurvey.get().getUrl())
+                    .build();
+
+            return manage;
+        }else {
+            throw new RuntimeException("Survey with ID " + surveyId + " not found.");
+        }
+    }
+
+    // todo : 분석 관리 Post
+    public void setSurveyMange(HttpServletRequest request, Long surveyId, SurveyManageDto manage) throws InvalidTokenException {
+        Optional<SurveyDocument> optionalSurvey = surveyDocumentRepository.findById(surveyId);
+
+        if (optionalSurvey.isPresent()) {
+            SurveyDocument survey = optionalSurvey.get();
+            // update survey properties using the manage DTO
+            survey.setDeadline(manage.getDeadline());
+            survey.setUrl(manage.getUrl());
+            survey.setStartDate(manage.getStartDate());
+            survey.setAcceptResponse(manage.isAcceptResponse());
+
+            surveyDocumentRepository.save(survey);
+        } else {
+            throw new RuntimeException("Survey with ID " + surveyId + " not found.");
+        }
+
+        checkInvalidToken(request);
     }
 
     // todo : 분석 상세 분석

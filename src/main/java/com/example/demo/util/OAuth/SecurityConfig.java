@@ -49,6 +49,8 @@ public class SecurityConfig{
                 .formLogin().disable()
                 .addFilter(corsFilter); // @CrossOrigin(인증X), 시큐리티 필터에 등록 인증(O)
 
+        http.headers().frameOptions().sameOrigin();
+
         http.authorizeRequests()
                 .requestMatchers(FRONT_URL+"/main/**")
                 .authenticated()
@@ -60,5 +62,4 @@ public class SecurityConfig{
         http.addFilterBefore(new JwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-
 }

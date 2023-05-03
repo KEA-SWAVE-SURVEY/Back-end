@@ -26,6 +26,8 @@ public class User {
 
     private String email;
 
+    private String provider;
+
     private String userRole;
 
     @OneToOne(mappedBy = "user")
@@ -36,12 +38,13 @@ public class User {
 
     @Builder
     public User(Long id, String profileImg, String nickname,
-                String email, String userRole) {
+                String email,String provider, String userRole) {
 
         this.id = id;
         this.profileImg = profileImg;
         this.nickname = nickname;
         this.email = email;
+        this.provider=provider;
         this.userRole = userRole;
     }
 

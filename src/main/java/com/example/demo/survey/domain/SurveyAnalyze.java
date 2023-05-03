@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 
 @Data
 @Entity
@@ -21,14 +20,13 @@ public class SurveyAnalyze {
     @Column(name = "analyze_result3")
     private String analyzeResult3;
 
-//    연결할 필요가? document 에 연결
-//    @ManyToOne
-//    @JoinColumn(name = "survey_document_id")
-//    그냥 id 로만 받을지 -> SurveyAnswer 구분 처럼
-    private Long surveyDocumentId;
+
+    @ManyToOne
+    @JoinColumn(name = "survey_document_id")
+    private SurveyDocument surveyDocumentId;
 
     @Builder
-    public SurveyAnalyze(String analyzeResult1, String analyzeResult2, String analyzeResult3, Long surveyDocumentId) {
+    public SurveyAnalyze(String analyzeResult1, String analyzeResult2, String analyzeResult3, SurveyDocument surveyDocumentId) {
         this.analyzeResult1 = analyzeResult1;
         this.analyzeResult2 = analyzeResult2;
         this.analyzeResult3 = analyzeResult3;

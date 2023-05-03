@@ -23,13 +23,25 @@ public class SurveyDocument {
     private int type;
     @Column(name = "survey_description")
     private String description;
+    @Column(name = "accept_response")
+    private boolean acceptResponse;
+    @Column(name = "survey_start_date")
+    private String startDate;
+    @Column(name = "survey_deadline")
+    private String deadline;
+    @Column(name = "url")
+    private String url;
 
-    @OneToMany(mappedBy = "survey_document_id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
     @Column(name = "survey_response_count")
     private int responseCount;
+    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
+    @Column(name = "analyze")
+    private List<SurveyAnalyze> surveyAnalyzeList;
+
     @ManyToOne
     @JoinColumn(name = "survey_id")
     private Survey survey;
@@ -39,16 +51,21 @@ public class SurveyDocument {
     private Date regDate;
 
     @Builder
-    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
+    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, List<SurveyAnalyze> surveyAnalyzeList) {
         this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;
         this.questionDocumentList = questionDocumentList;
+        this.surveyAnalyzeList = surveyAnalyzeList;
     }
 
     // 문항 list 에 넣어주기
     public void setQuestion(QuestionDocument questionDocument) {
         this.questionDocumentList.add(questionDocument);
+    }
+    // 문항 analyze 에 넣어주기
+    public void setAnalyze(SurveyAnalyze surveyAnalyze) {
+        this.surveyAnalyzeList.add(surveyAnalyze);
     }
 }
