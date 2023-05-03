@@ -2,6 +2,7 @@ package com.example.demo.survey.service;
 
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
+import com.example.demo.survey.exception.InvalidSurveyException;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
 import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
@@ -13,9 +14,7 @@ import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepositor
 import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
-import com.example.demo.survey.response.QuestionResponseDto;
-import com.example.demo.survey.response.SurveyManageDto;
-import com.example.demo.survey.response.SurveyResponseDto;
+import com.example.demo.survey.response.*;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
@@ -28,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,10 +129,8 @@ public class SurveyService {
     }
 
     // 설문 응답 참여
-    public SurveyDocument getParticipantSurvey(Long id){
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
-
-        return surveyDocument;
+    public SurveyDetailDto getParticipantSurvey(Long id){
+        return getSurveyDetailDto(id);
     }
 
     // 설문 응답 저장
@@ -179,7 +177,7 @@ public class SurveyService {
         surveyRepository.save(survey);
     }
 
-    // todo : 파이썬으로 DocumentId 보내줌
+    // 파이썬으로 DocumentId 보내줌
     public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
         try {
             Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
@@ -187,9 +185,9 @@ public class SurveyService {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
             throw new InvalidPythonException();
         }
-
     }
-    // 분석 응답 리스트 불러오기 (보류)
+
+    // todo : 분석 응답 리스트 불러오기
     public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
         List<SurveyAnswer> surveyAnswerList = surveyAnswerRepository.findSurveyAnswersBySurveyDocumentId(surveyId);
@@ -199,28 +197,23 @@ public class SurveyService {
         return surveyAnswerList;
     }
 
-    // todo : 분석 응답 (문항 별 응답 수 불러오기) (Count)
-    public SurveyDocument readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+    // 분석 응답 (문항 별 응답 수 불러오기) (Count)
+    public SurveyDetailDto readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         checkInvalidToken(request);
 
-        //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
-        Optional<SurveyDocument> byId = surveyDocumentRepository.findById(surveyId);
-        if (byId.isPresent()) {
-            SurveyDocument surveyDocument = byId.get();
-            return surveyDocument;
-        } else {
-            throw new RuntimeException("Survey with ID " + surveyId + " not found.");
-        }
+        //
+        return getSurveyDetailDto(surveyId);
     }
 
-    // todo : 분석 관리 Get
+    // 분석 관리 Get
     public SurveyManageDto readSurveyMange(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         checkInvalidToken(request);
 
-        //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
+        //Survey_Id를 가져와서 그 Survey 의 Document 를 가져옴
         Optional<SurveyDocument> findSurvey = surveyDocumentRepository.findById(surveyId);
 
         if (findSurvey.isPresent()) {
+            //manage 부분만 추출
             SurveyManageDto manage = new SurveyManageDto();
             manage.builder()
                     .acceptResponse(findSurvey.get().isAcceptResponse())
@@ -231,31 +224,31 @@ public class SurveyService {
 
             return manage;
         }else {
-            throw new RuntimeException("Survey with ID " + surveyId + " not found.");
+            throw new InvalidSurveyException();
         }
     }
 
-    // todo : 분석 관리 Post
+    // 분석 관리 Post
     public void setSurveyMange(HttpServletRequest request, Long surveyId, SurveyManageDto manage) throws InvalidTokenException {
         Optional<SurveyDocument> optionalSurvey = surveyDocumentRepository.findById(surveyId);
 
         if (optionalSurvey.isPresent()) {
-            SurveyDocument survey = optionalSurvey.get();
+            SurveyDocument surveyDocument = optionalSurvey.get();
             // update survey properties using the manage DTO
-            survey.setDeadline(manage.getDeadline());
-            survey.setUrl(manage.getUrl());
-            survey.setStartDate(manage.getStartDate());
-            survey.setAcceptResponse(manage.isAcceptResponse());
+            surveyDocument.setDeadline(manage.getDeadline());
+            surveyDocument.setUrl(manage.getUrl());
+            surveyDocument.setStartDate(manage.getStartDate());
+            surveyDocument.setAcceptResponse(manage.isAcceptResponse());
 
-            surveyDocumentRepository.save(survey);
+            surveyDocumentRepository.save(surveyDocument);
         } else {
-            throw new RuntimeException("Survey with ID " + surveyId + " not found.");
+            throw new InvalidSurveyException();
         }
 
         checkInvalidToken(request);
     }
 
-    // todo : 분석 상세 분석
+    // 분석 상세 분석
     public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
@@ -272,5 +265,38 @@ public class SurveyService {
             throw new InvalidTokenException();
         }
         log.info("토큰 체크 완료");
+    }
+
+    // SurveyDocument Response 보낼 SurveyDetailDto로 변환하는 메서드
+    private SurveyDetailDto getSurveyDetailDto(Long surveyId) {
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyId).get();
+        SurveyDetailDto surveyDetailDto = new SurveyDetailDto();
+
+        // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
+        surveyDetailDto.setId(surveyDocument.getId());
+        surveyDetailDto.setTitle(surveyDocument.getTitle());
+
+        List<QuestionDetailDto> questionDtos = new ArrayList<>();
+        for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
+            QuestionDetailDto questionDto = new QuestionDetailDto();
+            questionDto.setId(questionDocument.getId());
+            questionDto.setTitle(questionDocument.getTitle());
+            questionDto.setQuestionType(questionDocument.getQuestionType());
+
+            List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
+            for (Choice choice : questionDocument.getChoiceList()) {
+                ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                choiceDto.setId(choice.getId());
+                choiceDto.setTitle(choice.getTitle());
+
+                choiceDtos.add(choiceDto);
+            }
+            questionDto.setChoiceList(choiceDtos);
+
+            questionDtos.add(questionDto);
+        }
+        surveyDetailDto.setQuestionList(questionDtos);
+
+        return surveyDetailDto;
     }
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -26,9 +27,9 @@ public class SurveyDocument {
     @Column(name = "accept_response")
     private boolean acceptResponse;
     @CreationTimestamp @Temporal(TemporalType.TIMESTAMP) @Column(name = "survey_start_date")
-    private String startDate;
+    private Date startDate;
     @CreationTimestamp @Temporal(TemporalType.TIMESTAMP) @Column(name = "survey_deadline")
-    private String deadline;
+    private Date deadline;
     @Column(name = "url")
     private String url;
 
