@@ -115,7 +115,7 @@ public class SurveyService {
         // 4. sort on How : ascending or descending
         Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
 
-        return surveyRepository.findByCustom_offsetPaging(pageable);
+        return surveyRepository.surveyDocumentPaging(pageable);
     }
 
     // todo : task 3 상세 설문 리스트 조회

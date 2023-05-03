@@ -6,28 +6,20 @@ import com.example.demo.user.domain.QUser;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
-public class SurveyCustomImpl implements SurveyRepositoryCustom{
+@RequiredArgsConstructor
+public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
     private final JPAQueryFactory jpaQueryFactory;
-    public SurveyCustomImpl(JPAQueryFactory jpaQueryFactory) {
-        this.jpaQueryFactory = jpaQueryFactory;
-    }
 
     @Override
-    public Page<SurveyDocument> findSurveyDocumentList(Long usrIdx, Pageable pageable) {
-        return null;
-    }
-
-    @Override
-    public Page<SurveyDocument> findByCustom_offsetPaging(Pageable pageable) {
+    public Page<SurveyDocument> surveyDocumentPaging(Pageable pageable) {
         QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
         QUser user = QUser.user;
 
