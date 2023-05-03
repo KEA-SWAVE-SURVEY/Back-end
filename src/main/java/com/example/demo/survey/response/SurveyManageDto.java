@@ -6,18 +6,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 public class SurveyManageDto {
     private boolean acceptResponse;
-    private String startDate;
-    private String deadline;
+    private Date startDate;
+    private Date deadline;
     private String url;
 
     @Builder
-    public SurveyManageDto(boolean acceptResponse, String startDate, String deadline, String url) {
+    public SurveyManageDto(boolean acceptResponse, Date startDate, Date deadline, String url) {
         this.acceptResponse = acceptResponse;
         this.startDate = startDate;
         this.deadline = deadline;
