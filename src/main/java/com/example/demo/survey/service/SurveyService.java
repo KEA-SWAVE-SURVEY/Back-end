@@ -19,12 +19,9 @@ import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
-import com.example.demo.util.paging.PageRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -48,7 +45,7 @@ public class SurveyService {
     private final ChoiceRepository choiceRepository;
     private final SurveyAnalyzeRepository surveyAnalyzeRepository;
 
-    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws Exception {
+    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException {
 
         // 유저 정보 받아오기
         checkInvalidToken(request);
@@ -72,7 +69,6 @@ public class SurveyService {
                 .description(surveyRequest.getDescription())
                 .type(surveyRequest.getType())
                 .build();
-        surveyDocument.setResponseCount(0);
         surveyDocumentRepository.save(surveyDocument);
 
 
@@ -103,25 +99,19 @@ public class SurveyService {
     }
 
     // todo : 메인 페이지에서 설문 리스트 (유저 관리 페이지에서 설문 리스트 x)
-    public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequest pageRequest) throws Exception {
+    public List<SurveyDocument> readSurveyList(HttpServletRequest request) throws Exception {
 
         checkInvalidToken(request);
 
         User user = userService.getUser(request);
 
-        // Request Method
-        // 1. view Method : grid or list
-        // 2. what page number
-        // 3. sort on What : date or title
-        // 4. sort on How : ascending or descending
-        Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
-
-        return surveyRepository.findByCustom_offsetPaging(pageable);
+        return surveyRepository.findById(user.getId()).get()
+                .getSurveyDocumentList();
     }
 
     // todo : task 3 상세 설문 리스트 조회
 
-    public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws Exception {
+    public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
         SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
 
         checkInvalidToken(request);
@@ -178,9 +168,6 @@ public class SurveyService {
         surveyAnswerList.add(surveyAnswer);
         survey.setSurveyAnswerList(surveyAnswerList);
         surveyRepository.save(survey);
-
-        // Answer 추가 될 때마다 Survey 응답자 수 증가
-        surveyDocumentRepository.updateAnswerCount(surveyDocumentId);
     }
 
     // todo : 파이썬으로 DocumentId 보내줌
@@ -193,9 +180,6 @@ public class SurveyService {
         }
 
     }
-    // todo : 분석 응답
-    public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws Exception {
-
     // 분석 응답 리스트 불러오기 (보류)
     public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
@@ -263,7 +247,7 @@ public class SurveyService {
     }
 
     // todo : 분석 상세 분석
-    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws Exception {
+    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
 
@@ -273,7 +257,7 @@ public class SurveyService {
     }
 
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
-    private static void checkInvalidToken(HttpServletRequest request) throws Exception {
+    private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
         if(request.getHeader("Authorization") == null) {
             log.info("error");
             throw new InvalidTokenException();
