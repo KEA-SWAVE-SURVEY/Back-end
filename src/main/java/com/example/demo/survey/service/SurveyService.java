@@ -20,6 +20,7 @@ import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
 import com.example.demo.util.page.PageRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,7 @@ public class SurveyService {
     private final ChoiceRepository choiceRepository;
     private final SurveyAnalyzeRepository surveyAnalyzeRepository;
 
+    @Transactional
     public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException {
 
         // 유저 정보 받아오기
@@ -59,8 +61,8 @@ public class SurveyService {
         if(userSurvey == null) {
             userSurvey = Survey.builder()
                     .user(userService.getUser(request))
-                    .surveyDocumentList(null)
-                    .surveyAnswerList(null)
+                    .surveyDocumentList(new ArrayList<>())
+                    .surveyAnswerList(new ArrayList<>())
                     .build();
             surveyRepository.save(userSurvey);
         }
@@ -71,9 +73,9 @@ public class SurveyService {
                 .title(surveyRequest.getTitle())
                 .description(surveyRequest.getDescription())
                 .type(surveyRequest.getType())
+                .questionDocumentList(new ArrayList<>())
                 .build();
         surveyDocumentRepository.save(surveyDocument);
-
 
         // 설문 문항
         surveyDocumentRepository.findById(surveyDocument.getId());
@@ -86,9 +88,10 @@ public class SurveyService {
                     .build();
             questionDocumentRepository.save(questionDocument);
 
-            if(questionRequestDto.getType() == 1) continue; // 주관식
+            if(questionRequestDto.getType() == 0) continue; // 주관식
 
             // 객관식, 찬부식일 경우 선지 저장
+            questionDocument.setChoiceList(new ArrayList<>());
             for(ChoiceRequestDto choiceRequestDto : questionRequestDto.getChoiceList()) {
                 Choice choice = Choice.builder()
                         .question_id(questionDocumentRepository.findById(questionDocument.getId()).get())
@@ -96,8 +99,18 @@ public class SurveyService {
                         .count(0)
                         .build();
                 choiceRepository.save(choice);
+                questionDocument.setChoice(choice);
             }
+            surveyDocument.setQuestion(questionDocument);
+            // choice 가 추가될 때마다 변경되는 Question Document 정보 저장
+            questionDocumentRepository.flush();
         }
+        // question 이 추가될 때마다 변경되는 Survey Document 정보 저장
+        surveyDocumentRepository.flush();
+
+        // Survey 에 SurveyDocument 저장
+        userSurvey.setDocument(surveyDocument);
+        surveyRepository.flush();
 
     }
 
@@ -121,9 +134,10 @@ public class SurveyService {
     // todo : task 3 상세 설문 리스트 조회
 
     public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
 
         checkInvalidToken(request);
+
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
 
         return surveyDocument;
     }

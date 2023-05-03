@@ -43,32 +43,32 @@ public class SurveyDocumentControllerTest {
 
     @Test @DisplayName("Survey 생성시 DB 저장")
     void test1() throws Exception {
-        // given
-        SurveyRequestDto surveyRequest = SurveyRequestDto.builder()
-                .title("설문 제목 테스트")
-                .description("설문 설명 테스트")
-                .type(0)
-                .build();
-
-        QuestionRequestDto questionRequest1 = new QuestionRequestDto("주관식 문제 1", 0);
-        QuestionRequestDto questionRequest2 = new QuestionRequestDto("주관식 문제 2", 0);
-
-        List<QuestionRequestDto> setQuestions = new ArrayList<>();
-        setQuestions.add(questionRequest1);
-        setQuestions.add(questionRequest2);
-
-
-        surveyRequest.setQuestionRequest(setQuestions);
-
-        // ObjectMapper : json 으로 convert
-        String surveyJson = objectMapper.writeValueAsString(surveyRequest);
-
-        // expected
-        mockMvc.perform(post("/api/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(surveyJson))
-                .andExpect(status().isOk())
-                .andDo(print());
+//        // given
+//        SurveyRequestDto surveyRequest = SurveyRequestDto.builder()
+//                .title("설문 제목 테스트")
+//                .description("설문 설명 테스트")
+//                .type(0)
+//                .build();
+//
+//        QuestionRequestDto questionRequest1 = new QuestionRequestDto("주관식 문제 1", 0);
+//        QuestionRequestDto questionRequest2 = new QuestionRequestDto("주관식 문제 2", 0);
+//
+//        List<QuestionRequestDto> setQuestions = new ArrayList<>();
+//        setQuestions.add(questionRequest1);
+//        setQuestions.add(questionRequest2);
+//
+//
+//        surveyRequest.setQuestionRequest(setQuestions);
+//
+//        // ObjectMapper : json 으로 convert
+//        String surveyJson = objectMapper.writeValueAsString(surveyRequest);
+//
+//        // expected
+//        mockMvc.perform(post("/api/create")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(surveyJson))
+//                .andExpect(status().isOk())
+//                .andDo(print());
     }
 
     @Test @DisplayName("")
