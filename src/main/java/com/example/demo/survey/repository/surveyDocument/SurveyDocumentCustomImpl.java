@@ -16,7 +16,6 @@ import java.util.List;
 import static com.example.demo.survey.domain.QSurveyAnswer.surveyAnswer;
 import static com.example.demo.survey.domain.QSurveyDocument.surveyDocument;
 import static com.example.demo.survey.domain.QSurvey.survey;
-import static com.example.demo.util.querydsl.DslCustomExpression.*;
 
 @Repository
 public class SurveyDocumentCustomImpl implements SurveyDocumentRepositoryCustom{

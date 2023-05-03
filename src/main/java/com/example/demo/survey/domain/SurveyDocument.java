@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -31,6 +33,10 @@ public class SurveyDocument {
     @ManyToOne
     @JoinColumn(name = "survey_id")
     private Survey survey;
+
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date regDate;
 
     @Builder
     public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {

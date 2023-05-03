@@ -18,9 +18,12 @@ import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
+import com.example.demo.util.paging.PageRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -98,14 +101,20 @@ public class SurveyService {
     }
 
     // todo : 메인 페이지에서 설문 리스트 (유저 관리 페이지에서 설문 리스트 x)
-    public List<SurveyDocument> readSurveyList(HttpServletRequest request) throws Exception {
+    public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequest pageRequest) throws Exception {
 
         checkInvalidToken(request);
 
         User user = userService.getUser(request);
 
-        return surveyRepository.findById(user.getId()).get()
-                .getSurveyDocumentList();
+        // Request Method
+        // 1. view Method : grid or list
+        // 2. what page number
+        // 3. sort on What : date or title
+        // 4. sort on How : ascending or descending
+        Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
+
+        return surveyRepository.findByCustom_offsetPaging(pageable);
     }
 
     // todo : task 3 상세 설문 리스트 조회
