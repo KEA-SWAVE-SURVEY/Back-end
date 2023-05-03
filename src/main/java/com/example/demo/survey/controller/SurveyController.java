@@ -7,8 +7,10 @@ import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.response.SurveyManageDto;
 import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.survey.service.SurveyService;
+import com.example.demo.util.page.PageRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,9 +29,9 @@ public class SurveyController {
         return "Success";
     }
 
-    @GetMapping(value = "/api/survey-list")
-    public List<SurveyDocument> readList(HttpServletRequest request) throws Exception {
-        return surveyService.readSurveyList(request);
+    @PostMapping(value = "/api/survey-list")
+    public Page<SurveyDocument> readList(HttpServletRequest request, @RequestBody PageRequest pageRequest) throws Exception {
+        return surveyService.readSurveyList(request, pageRequest);
     }
 
     @GetMapping(value = "/api/survey-list/{id}")
