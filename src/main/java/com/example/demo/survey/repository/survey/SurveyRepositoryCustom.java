@@ -5,6 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface SurveyRepositoryCustom {
-    Page<SurveyDocument> findSurveyDocumentList(Long usrIdx, Pageable pageable);
-    Page<SurveyDocument> findByCustom_offsetPaging(Pageable pageable);
+    Page<SurveyDocument> surveyDocumentPaging(Pageable pageable);
 }
