@@ -1,9 +1,11 @@
 package com.example.demo.survey.domain;
 
 import jakarta.persistence.*;
+import jdk.jfr.Timestamp;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.List;
 
@@ -23,9 +25,9 @@ public class SurveyDocument {
     private String description;
     @Column(name = "accept_response")
     private boolean acceptResponse;
-    @Column(name = "survey_start_date")
+    @CreationTimestamp @Temporal(TemporalType.TIMESTAMP) @Column(name = "survey_start_date")
     private String startDate;
-    @Column(name = "survey_deadline")
+    @CreationTimestamp @Temporal(TemporalType.TIMESTAMP) @Column(name = "survey_deadline")
     private String deadline;
     @Column(name = "url")
     private String url;

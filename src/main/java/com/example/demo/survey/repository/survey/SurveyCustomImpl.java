@@ -53,9 +53,9 @@ public class SurveyCustomImpl implements SurveyRepositoryCustom{
                 Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
                 // 서비스에서 넣어준 정렬 조건을 스위치 케이스 문을 활용하여 셋팅하여 준다.
                 switch (order.getProperty()){
-                    case "createdAt" :
+                    case "startDate" :
                     case "descending":
-                        return new OrderSpecifier(direction, surveyDocument.regDate);
+                        return new OrderSpecifier(direction, surveyDocument);
                     case "title":
                         return new OrderSpecifier(direction, surveyDocument.title);
 
