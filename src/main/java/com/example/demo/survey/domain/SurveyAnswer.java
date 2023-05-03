@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -14,9 +15,6 @@ public class SurveyAnswer {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "survey_answer_id")
     private Long id;
-    @Column(name = "survey_answer_user_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
     @Column(name = "survey_type")
     private int type;
     @Column(name = "survey_title")
@@ -49,6 +47,5 @@ public class SurveyAnswer {
     public void setQuestion(QuestionAnswer questionanswer) {
         this.questionanswersList.add(questionanswer);
     }
-
 
 }
