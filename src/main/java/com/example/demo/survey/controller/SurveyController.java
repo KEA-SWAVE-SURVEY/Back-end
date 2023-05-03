@@ -4,6 +4,7 @@ import com.example.demo.survey.domain.SurveyAnalyze;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.request.SurveyRequestDto;
+import com.example.demo.survey.response.SurveyDetailDto;
 import com.example.demo.survey.response.SurveyManageDto;
 import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.survey.service.SurveyService;
@@ -41,7 +42,7 @@ public class SurveyController {
 
     // 설문 참여
     @GetMapping(value = "/api/survey-participate/{surveyId}")
-    public SurveyDocument joinSurveyResponse(@PathVariable Long surveyId) {
+    public SurveyDetailDto participateSurvey(@PathVariable Long surveyId) {
         return surveyService.getParticipantSurvey(surveyId);
     }
 
@@ -63,7 +64,7 @@ public class SurveyController {
 
     // 분석 응답
     @GetMapping(value = "/api/research/2/{surveyId}")
-    public SurveyDocument readResponse(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    public SurveyDetailDto readResponse(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
         return surveyService.readCountChoice(request, surveyId);
     }
 
