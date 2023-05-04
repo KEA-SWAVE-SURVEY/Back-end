@@ -275,6 +275,7 @@ public class SurveyService {
         // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
         surveyDetailDto.setId(surveyDocument.getId());
         surveyDetailDto.setTitle(surveyDocument.getTitle());
+        surveyDetailDto.setDescription(surveyDocument.getDescription());
 
         List<QuestionDetailDto> questionDtos = new ArrayList<>();
         for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
