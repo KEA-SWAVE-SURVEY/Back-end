@@ -164,10 +164,12 @@ public class SurveyService {
                     .build();
             questionAnswerRepository.save(questionAnswer);
             //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
-            Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
-            if (findChoice.isPresent()) {
-                findChoice.get().setCount(findChoice.get().getCount() + 1);
-                choiceRepository.save(findChoice.get());
+            if (questionAnswer.getCheckAnswerId() != null) {
+                Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
+                if (findChoice.isPresent()) {
+                    findChoice.get().setCount(findChoice.get().getCount() + 1);
+                    choiceRepository.save(findChoice.get());
+                }
             }
         }
         // 저장된 설문 응답을 Survey 에 연결 및 저장
