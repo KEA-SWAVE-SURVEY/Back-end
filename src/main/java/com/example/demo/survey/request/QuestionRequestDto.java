@@ -18,16 +18,17 @@ public class QuestionRequestDto {
      */
     public QuestionRequestDto() {};
 
-    // 주관식, 찬부식
-    public QuestionRequestDto(String title, int type) {
-        this.type = type;
-        this.title = title;
-    }
-
     // 객관식
+    @Builder
     public QuestionRequestDto(String title, int type, List<ChoiceRequestDto> choiceList) {
         this.title = title;
         this.choiceList = choiceList;
+        this.type = type;
+    }
+
+    @Builder
+    public QuestionRequestDto(String title, int type) {
+        this.title = title;
         this.type = type;
     }
 }
