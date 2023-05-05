@@ -29,6 +29,7 @@ public class SurveyAnswer {
     @OneToMany(mappedBy = "surveyAnswerId", fetch = FetchType.LAZY)
     @Column(name = "content")
     private List<QuestionAnswer> questionanswersList;
+
     @ManyToOne
     @JoinColumn(name = "survey_id")
     private Survey survey;

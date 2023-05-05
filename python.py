@@ -31,7 +31,7 @@ answerList= [] #답변 초안, 내부에 [[]] 형태로 작업예정
 
 for i in range(0, len(resultSource)):
    print(list(resultSource[i])[0])
-   rdb = f'SELECT check_answer FROM QUESTION_ANSWER where survey_answer_id={list(resultSource[i])[0]}'
+   rdb = f'SELECT check_answer_id FROM QUESTION_ANSWER where survey_answer_id={list(resultSource[i])[0]}'
    print(rdb)
    sourceCursor.execute(rdb)
    answerUserSource = sourceCursor.fetchall()

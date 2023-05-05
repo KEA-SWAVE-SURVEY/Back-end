@@ -1,5 +1,6 @@
 package com.example.demo.survey.service;
 
+import com.example.demo.survey.analyze.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
 import com.example.demo.survey.exception.InvalidSurveyException;
@@ -197,6 +198,25 @@ public class SurveyService {
     public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
         try {
             Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
+
+//            {
+//                1(surveyDocumentId)
+//                    {
+//                        1(questionId)성별;
+//                        1(choiceId)남자;
+//                        {
+//                            0.88(support);
+//                            2(choiceId)싫음;
+//                        }
+//                    }
+//            }
+//            [1,[1,1,[[0.88,2],[0.80,3]]]]
+//            {
+//        }
+            // todo: 값 분리해서 리스트로 저장
+            Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
+//            SurveyAnalyzeDto surveyAnalyzeDto = new SurveyAnalyzeDto;
+
         } catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
             throw new InvalidPythonException();
@@ -215,7 +235,7 @@ public class SurveyService {
 
     // 분석 응답 (문항 별 응답 수 불러오기) (Count)
     public SurveyDetailDto readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
-        checkInvalidToken(request);
+//        checkInvalidToken(request);
 
         //
         return getSurveyDetailDto(surveyId);

@@ -1,5 +1,7 @@
-package com.example.demo.survey.response;
+package com.example.demo.survey.domain;
 
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,9 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChoiceDetailDto {
+public class ChoiceAnalyze {
     private Long id;
-    private String title;
-    private int count;
-    // getter, setter 생략
+    private String choiceTitle;
+
+
 }
