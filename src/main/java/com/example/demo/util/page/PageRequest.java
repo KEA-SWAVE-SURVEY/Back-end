@@ -1,17 +1,26 @@
 package com.example.demo.util.page;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Sort.*;
 
 @Setter @Getter
+@NoArgsConstructor
 public class PageRequest {
     private String method; // grid or list
-    private String sortProperties; // date or list
+    private String sortProperties; // date or title
     private int page = 1;
     private int size = 5;
     private String direct;
     private Direction direction;
+
+    public PageRequest(String method, String sortProperties, String direct) {
+        this.method = method;
+        this.sortProperties = sortProperties;
+        this.direct = direct;
+        this.direction = getDirection(direct);
+    }
 
     public void setPage(int page) {
         this.page = page <= 0 ? 1 : page;
@@ -36,6 +45,13 @@ public class PageRequest {
         }
         return direction;
     }
+
+    /**
+     * Pageable 만들어서 PageReauest.of() 로 보내주기
+     * @param sortProperties : regDate or title
+     * @param direction : ascending or descending
+     * @return
+     */
     public org.springframework.data.domain.PageRequest of(String sortProperties, Direction direction) {
         return org.springframework.data.domain.PageRequest.of(page-1, size, direction, sortProperties);
     }

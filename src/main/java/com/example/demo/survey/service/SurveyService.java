@@ -115,7 +115,6 @@ public class SurveyService {
 
     }
 
-    // todo : 메인 페이지에서 설문 리스트 (유저 관리 페이지에서 설문 리스트 x)
     public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequest pageRequest) throws Exception {
 
         checkInvalidToken(request);
@@ -129,18 +128,17 @@ public class SurveyService {
         // 4. sort on How : ascending or descending
         Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
 
-        return surveyRepository.surveyDocumentPaging(pageable);
+        return surveyRepository.surveyDocumentPaging(user, pageable);
     }
-
-    // todo : task 3 상세 설문 리스트 조회
 
     public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
 
-        checkInvalidToken(request);
-
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(id).get();
-
-        return surveyDocument;
+//        checkInvalidToken(request);
+//        User user = userService.getUser(request);
+//
+//        surveyRepository.findByUser(user.getId())
+//                .getSurveyDocumentList().get()
+        return null;
     }
 
     // 설문 응답 참여
