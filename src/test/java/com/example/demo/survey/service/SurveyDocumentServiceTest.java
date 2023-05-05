@@ -7,6 +7,9 @@ import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
 import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
 import com.example.demo.survey.repository.survey.SurveyRepository;
+import com.example.demo.survey.repository.survey.SurveyRepositoryCustom;
+import com.example.demo.survey.repository.survey.SurveyRepositoryImpl;
+import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
@@ -15,14 +18,31 @@ import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
 import com.example.demo.util.OAuth.JwtProperties;
+import com.example.demo.util.page.PageRequest;
+import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.*;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +51,9 @@ import java.util.List;
 
 import static com.example.demo.survey.domain.QSurveyDocument.surveyDocument;
 import static org.junit.jupiter.api.Assertions.*;
+import static com.example.demo.util.page.PageRequest.*;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,6 +64,8 @@ public class SurveyDocumentServiceTest {
     @Autowired
     SurveyRepository surveyRepository;
     @Autowired
+    SurveyDocumentRepository surveyDocumentRepository;
+    @Autowired
     QuestionDocumentRepository questionDocumentRepository;
     @Autowired
     ChoiceRepository choiceRepository;
@@ -48,7 +73,15 @@ public class SurveyDocumentServiceTest {
     UserService2 userService;
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    SurveyRepositoryImpl surveyRepositoryImpl;
+
     MockHttpServletRequest servletRequest;
+
+    @Mock
+    JPAQueryFactory jpaQueryFactory;
+
     @BeforeEach
     void clean() {
         // User 정보 생성
@@ -59,7 +92,9 @@ public class SurveyDocumentServiceTest {
                 .userRole("ROLE_USER")
                 .build();
         userRepository.save(user);
+
         String userToken = userService.createToken(user);
+
         servletRequest = new MockHttpServletRequest();
         servletRequest.setAttribute("userCode", userRepository.findByEmail("abc@naver.com").getUserCode());
         servletRequest.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + userToken);
@@ -69,7 +104,7 @@ public class SurveyDocumentServiceTest {
 
     @Test @DisplayName("설문 레포지토리에 저장")
     @Transactional
-    void test1() throws Exception{
+    void surveyTest1() throws Exception{
         // given
         List<ChoiceRequestDto> choiceList = new ArrayList<>();
         List<QuestionRequestDto> questionList = new ArrayList<>();
@@ -124,9 +159,56 @@ public class SurveyDocumentServiceTest {
         }
     }
 
-    @Test @DisplayName("주관식 설문 저장")
-    void test2() throws Exception {
+    @Test @DisplayName("설문 리스트 query dsl mock 쿼리 조회")
+    @Transactional
+    void surveyTest2() throws Exception {
+        // given
+        List<ChoiceRequestDto> choiceList = new ArrayList<>();
+        List<QuestionRequestDto> questionList = new ArrayList<>();
 
+        // 설문 문항 1 내부 선지
+        ChoiceRequestDto choiceRequest1InQ1 = ChoiceRequestDto.builder()
+                .choiceName("선지 1")
+                .build();
+        ChoiceRequestDto choiceRequest2InQ1 = ChoiceRequestDto.builder()
+                .choiceName("선지 2")
+                .build();
+        choiceList.add(choiceRequest1InQ1);
+        choiceList.add(choiceRequest2InQ1);
+
+        QuestionRequestDto questionRequest2 = new QuestionRequestDto("객관식 문항", 2, choiceList);
+        QuestionRequestDto questionRequest0 = new QuestionRequestDto("주관식 문항", 0);
+        questionList.add(questionRequest2);
+        questionList.add(questionRequest0);
+
+        SurveyRequestDto surveyRequest = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트")
+                .description("설문 설명 테스트")
+                .questionRequest(questionList)
+                .build();
+
+        // when
+        surveyService.createSurvey(servletRequest, surveyRequest);
+
+
+        // when
+        PageRequest pageRequest = new PageRequest("list", "title", "ascending");
+        Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
+        SurveyDocument findSurveyDocument = surveyRepositoryImpl.getSurveyDocumentList(userService.getUser(servletRequest), pageable).get(0);
+
+
+        // then
+//        assertEquals(1, pageImpl.getContent().size());
+//        assertEquals(1, pageImpl.getTotalPages());
+//        assertEquals(0, pageImpl.getNumber());
+        assertEquals(findSurveyDocument.getTitle(), surveyRequest.getTitle());
+        assertEquals(findSurveyDocument.getDescription(), surveyRequest.getDescription());
     }
 
+    @Test @DisplayName("설문 리스트 페이징 처리 조회")
+    @Transactional
+    void surveyTest3() throws Exception {
+
+    }
 }
