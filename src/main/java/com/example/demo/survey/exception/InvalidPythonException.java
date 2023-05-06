@@ -6,5 +6,8 @@ public class InvalidPythonException extends RuntimeException {
     public InvalidPythonException() {
         super(MESSAGE);
     }
+    public InvalidPythonException(Exception e) {
+        super(MESSAGE,e);
+    }
 }
 

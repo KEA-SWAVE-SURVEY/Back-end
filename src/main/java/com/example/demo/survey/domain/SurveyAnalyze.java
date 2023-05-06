@@ -1,15 +1,12 @@
 package com.example.demo.survey.domain;
 
-import com.example.demo.survey.analyze.QuestionAnalyzeDto;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 public class SurveyAnalyze {
@@ -17,15 +14,17 @@ public class SurveyAnalyze {
     @Column(name = "survey_analyze_id")
     private Long id;
 
-//    @OneToMany(mappedBy = "surveyAnalyzeId", fetch = FetchType.LAZY)
-//    @Column(name = "content")
-//    private List<QuestionAnalyze> questionAnalyzeList;
+    @OneToMany(mappedBy = "surveyAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Column(name = "연관분석")
+    private List<QuestionAnalyze> questionAnalyzeList;
 
-//    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
-//    @Column(name = "content")
-//    private List<QuestionDocument> questionDocumentList;
-
-    @ManyToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "survey_document_id")
-    private SurveyDocument surveyDocumentId;
+    private SurveyDocument surveyDocument;
+
+    @Builder
+    public SurveyAnalyze(List<QuestionAnalyze> questionAnalyzeList, SurveyDocument surveyDocument) {
+        this.questionAnalyzeList = questionAnalyzeList;
+        this.surveyDocument = surveyDocument;
+    }
 }

@@ -2,15 +2,14 @@ package com.example.demo.survey.domain;
 
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 public class SurveyDocument {
@@ -37,22 +36,21 @@ public class SurveyDocument {
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
-    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
-    @Column(name = "analyze")
-    private List<SurveyAnalyze> surveyAnalyzeList;
+    @OneToOne(mappedBy = "surveyDocument", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private SurveyAnalyze surveyAnalyze;
 
     @ManyToOne
     @JoinColumn(name = "survey_id")
     private Survey survey;
 
     @Builder
-    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, List<SurveyAnalyze> surveyAnalyzeList) {
+    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, SurveyAnalyze surveyAnalyze) {
         this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;
         this.questionDocumentList = questionDocumentList;
-        this.surveyAnalyzeList = surveyAnalyzeList;
+        this.surveyAnalyze = surveyAnalyze;
     }
 
     // 문항 list 에 넣어주기
@@ -61,6 +59,6 @@ public class SurveyDocument {
     }
     // 문항 analyze 에 넣어주기
     public void setAnalyze(SurveyAnalyze surveyAnalyze) {
-        this.surveyAnalyzeList.add(surveyAnalyze);
+        this.surveyAnalyze=surveyAnalyze;
     }
 }

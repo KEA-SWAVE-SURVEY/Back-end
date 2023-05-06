@@ -1,6 +1,6 @@
 package com.example.demo.survey.controller;
 
-import com.example.demo.survey.domain.SurveyAnalyze;
+import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.request.SurveyRequestDto;
@@ -13,8 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -83,8 +81,8 @@ public class SurveyController {
 
     // 분석 상세 분석
     // todo: python 에서 저장한 상세 분석 리스트 db 에서 가져오기
-    @GetMapping(value = "/api/research/4/{surveyId}/")
-    public SurveyAnalyze readDetailAnalyze(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    @GetMapping(value = "/api/research/4/{surveyId}")
+    public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
         return surveyService.readSurveyDetailAnalyze(request, surveyId);
     }
 }

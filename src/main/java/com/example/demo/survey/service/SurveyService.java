@@ -1,11 +1,13 @@
 package com.example.demo.survey.service;
 
-import com.example.demo.survey.analyze.SurveyAnalyzeDto;
+import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
 import com.example.demo.survey.exception.InvalidSurveyException;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
+import com.example.demo.survey.repository.choiceAnalyze.ChoiceAnalyzeRepository;
+import com.example.demo.survey.repository.questionAnlayze.QuestionAnalyzeRepository;
 import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
 import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
 import com.example.demo.survey.repository.survey.SurveyRepository;
@@ -20,6 +22,7 @@ import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
 import com.example.demo.util.page.PageRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class SurveyService {
+    private final ChoiceAnalyzeRepository choiceAnalyzeRepository;
+    private final QuestionAnalyzeRepository questionAnalyzeRepository;
 
     private final UserService2 userService;
     private final UserRepository userRepository;
@@ -195,29 +200,86 @@ public class SurveyService {
     // 파이썬으로 DocumentId 보내줌
     public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
         try {
-            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
+//            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
 
-//            {
-//                1(surveyDocumentId)
-//                    {
-//                        1(questionId)성별;
-//                        1(choiceId)남자;
-//                        {
-//                            0.88(support);
-//                            2(choiceId)싫음;
-//                        }
-//                    }
-//            }
-//            [1,[1,1,[[0.88,2],[0.80,3]]]]
-//            {
-//        }
-            // todo: 값 분리해서 리스트로 저장
-            Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
-//            SurveyAnalyzeDto surveyAnalyzeDto = new SurveyAnalyzeDto;
+            /**
+             [1(남성의choiceId),
+              [
+                [0.88,3(짜장의ChoiceId)],
+                [0.80,5(싫음의ChoiceId)]
+              ]
+             ]
+             **/
 
+            String inputString = "[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]";
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Object> List = objectMapper.readValue(inputString, List.class);
+            /**
+             * dataList
+             * [1,
+             *   [
+             *     [0.88, 2],
+             *     [0.8, 3],
+             *     ...
+             *   ]
+             * ]
+             */
+
+            // 값 분리해서 Analyze DB에 저장
+            SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyDocumentId);
+            // 과거의 분석 결과 있으면 questionAnalyze delete & null 주입
+            if (surveyAnalyze != null) {
+                Long id = surveyAnalyze.getId();
+                QuestionAnalyze qbySurveyAnalyzeId = questionAnalyzeRepository.findBySurveyAnalyzeId(id);
+                questionAnalyzeRepository.delete(qbySurveyAnalyzeId);
+                surveyAnalyze.setQuestionAnalyzeList(new ArrayList<>());
+            } else {
+                surveyAnalyze = SurveyAnalyze.builder()
+                        .surveyDocument(surveyDocumentRepository.findById(surveyDocumentId).get())
+                        .questionAnalyzeList(new ArrayList<>())
+                        .build();
+            }
+
+            surveyAnalyzeRepository.save(surveyAnalyze);
+            //for 위의 예시(남성의 갯수) 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
+            //[1,[[0.88,2],[0.8,3]]]
+            //[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]
+            for (int j = 0; j < List.size(); j++) {
+                java.util.List<Object> dataList = (List<Object>) List.get(j);
+                Long choiceId = Long.valueOf((Integer) dataList.get(0));
+                QuestionAnalyze questionAnalyze = new QuestionAnalyze();
+                questionAnalyze = QuestionAnalyze.builder()
+                        .surveyAnalyzeId(surveyAnalyze)
+                        .choiceId(choiceId)
+                        .choiceTitle(choiceRepository.findById(choiceId).get().getTitle())
+                        .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId).get().getQuestion_id().getId()).get().getTitle())
+                        .choiceAnalyzeList(new ArrayList<>())
+                        .build();
+
+                questionAnalyzeRepository.save(questionAnalyze);
+
+                // for문 [0.88,2] 같은 배열의 갯수 만큼
+                List<Object> subList = (List<Object>) dataList.get(1);
+                // [[0.88,3],[0.8,5]]
+                for (int i = 0; i < subList.size(); i++) {
+                    ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
+                    List<Object> subbList = (List<Object>) subList.get(i);
+                    double support = (double) subbList.get(0);
+                    Long choiceId2 = Long.valueOf((Integer) subbList.get(1));
+                    choiceAnalyze = choiceAnalyze.builder()
+                            .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
+                            .support(support)
+                            .questionAnalyzeId(questionAnalyze)
+                            .choiceId(choiceId2)
+                            .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId2).get().getQuestion_id().getId()).get().getTitle())
+                            .build();
+                    choiceAnalyzeRepository.save(choiceAnalyze);
+                }
+            }
         } catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
-            throw new InvalidPythonException();
+            throw new InvalidPythonException(e);
         }
     }
 
@@ -282,14 +344,13 @@ public class SurveyService {
         checkInvalidToken(request);
     }
 
-    // 분석 상세 분석
-    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+    // 분석 상세 분석 Get
+    public SurveyAnalyzeDto readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
 
-        checkInvalidToken(request);
-
-        return surveyAnalyze;
+//        checkInvalidToken(request);
+        return getSurveyDetailAnalyzeDto(surveyAnalyze.getId());
     }
 
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
@@ -334,4 +395,37 @@ public class SurveyService {
 
         return surveyDetailDto;
     }
+
+    private SurveyAnalyzeDto getSurveyDetailAnalyzeDto(Long surveyId) {
+        SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findById(surveyId).get();
+        SurveyAnalyzeDto surveyAnalyzeDto = new SurveyAnalyzeDto();
+
+        // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
+        surveyAnalyzeDto.setId(surveyAnalyze.getId());
+
+        List<QuestionAnalyzeDto> questionDtos = new ArrayList<>();
+        for (QuestionAnalyze questionAnalyze : surveyAnalyze.getQuestionAnalyzeList()) {
+            QuestionAnalyzeDto questionDto = new QuestionAnalyzeDto();
+            questionDto.setId(questionAnalyze.getId());
+            questionDto.setChoiceTitle(questionAnalyze.getChoiceTitle());
+            questionDto.setQuestionTitle(questionAnalyze.getQuestionTitle());
+
+            List<ChoiceAnalyzeDto> choiceDtos = new ArrayList<>();
+            for (ChoiceAnalyze choice : questionAnalyze.getChoiceAnalyzeList()) {
+                ChoiceAnalyzeDto choiceDto = new ChoiceAnalyzeDto();
+                choiceDto.setId(choice.getId());
+                choiceDto.setChoiceTitle(choice.getChoiceTitle());
+                choiceDto.setSupport(choice.getSupport());
+                choiceDto.setQuestionTitle(choice.getQuestionTitle());
+                choiceDtos.add(choiceDto);
+            }
+            questionDto.setChoiceAnalyzeList(choiceDtos);
+
+            questionDtos.add(questionDto);
+        }
+        surveyAnalyzeDto.setQuestionAnalyzeList(questionDtos);
+
+        return surveyAnalyzeDto;
+    }
+
 }
