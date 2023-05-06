@@ -31,7 +31,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -200,7 +202,29 @@ public class SurveyService {
     // 파이썬으로 DocumentId 보내줌
     public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
         try {
-//            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
+            System.out.println("pythonbuilder ");
+            String arg1;
+            ProcessBuilder builder;
+            BufferedReader br;
+
+            builder = new ProcessBuilder("python", "./src/main/resources/python/python3.py", String.valueOf(surveyDocumentId));
+
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+
+            // 자식 프로세스가 종료될 때까지 기다림
+            int exitval = process.waitFor();
+
+            //// 서브 프로세스가 출력하는 내용을 받기 위해
+            br = new BufferedReader(new InputStreamReader(process.getInputStream(),"UTF-8"));
+
+            String line = br.readLine();
+            log.info(line);
+
+            if(exitval !=0){
+                //비정상종료
+                System.out.println("비정상종료");
+            }
 
             /**
              [1(남성의choiceId),
@@ -280,6 +304,8 @@ public class SurveyService {
         } catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
             throw new InvalidPythonException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
