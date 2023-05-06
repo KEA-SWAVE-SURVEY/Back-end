@@ -1,6 +1,6 @@
 package com.example.demo.survey.controller;
 
-import com.example.demo.survey.response.SurveyAnalyzeDto;
+import com.example.demo.survey.domain.SurveyAnalyze;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.request.SurveyRequestDto;
@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,12 +36,12 @@ public class SurveyController {
     }
 
     @GetMapping(value = "/api/survey-list/{id}")
-    public SurveyDetailDto readDetail(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+    public SurveyDocument readDetail(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
         return surveyService.readSurveyDetail(request, id);
     }
 
     // 설문 참여
-    @GetMapping(value = "/api/load-survey/{surveyId}")
+    @GetMapping(value = "/api/survey-participate/{surveyId}")
     public SurveyDetailDto participateSurvey(@PathVariable Long surveyId) {
         return surveyService.getParticipantSurvey(surveyId);
     }
@@ -56,7 +58,7 @@ public class SurveyController {
 
     // 분석 문항
     @GetMapping(value = "/api/research/1/{surveyId}")
-    public SurveyDetailDto readSurvey(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    public SurveyDocument readSurvey(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
         return surveyService.readSurveyDetail(request, surveyId);
     }
 
@@ -80,8 +82,9 @@ public class SurveyController {
     }
 
     // 분석 상세 분석
-    @GetMapping(value = "/api/research/4/{surveyId}")
-    public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    // todo: python 에서 저장한 상세 분석 리스트 db 에서 가져오기
+    @GetMapping(value = "/api/research/4/{surveyId}/")
+    public SurveyAnalyze readDetailAnalyze(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
         return surveyService.readSurveyDetailAnalyze(request, surveyId);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.util.page;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,7 +16,9 @@ public class PageRequest {
     private String direct;
     private Direction direction;
 
-    public PageRequest(String method, String sortProperties, String direct) {
+    @Builder
+    public PageRequest(int page, String method, String sortProperties, String direct) {
+        this.page = page;
         this.method = method;
         this.sortProperties = sortProperties;
         this.direct = direct;
@@ -55,13 +58,5 @@ public class PageRequest {
     public org.springframework.data.domain.PageRequest of(String sortProperties, Direction direction) {
         return org.springframework.data.domain.PageRequest.of(page-1, size, direction, sortProperties);
     }
-    // 날짜 순 으로 Page 정렬
-    public org.springframework.data.domain.PageRequest ofDate() {
-        return org.springframework.data.domain.PageRequest.of(page - 1, size, direction, "regDate");
-    }
 
-    // ㄱㄴㄷ 순으로 Page 정렬
-    public org.springframework.data.domain.PageRequest ofABC() {
-        return org.springframework.data.domain.PageRequest.of(page-1, size, direction, "title");
-    }
 }
