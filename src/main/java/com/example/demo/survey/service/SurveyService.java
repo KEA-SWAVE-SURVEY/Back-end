@@ -193,6 +193,8 @@ public class SurveyService {
             //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
             if (questionAnswer.getCheckAnswerId() != null) {
                 Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
+//                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
+
                 if (findChoice.isPresent()) {
                     findChoice.get().setCount(findChoice.get().getCount() + 1);
                     choiceRepository.save(findChoice.get());
@@ -242,13 +244,13 @@ public class SurveyService {
              ]
              **/
 
-            String inputString = line;
+            String inputString = line.replaceAll("'", "");
 
             ObjectMapper objectMapper = new ObjectMapper();
             List<Object> List = objectMapper.readValue(inputString, List.class);
             /**
              * dataList
-             * [1,
+             * [1
              *   [
              *     [0.88, 2],
              *     [0.8, 3],
@@ -288,13 +290,12 @@ public class SurveyService {
                 questionAnalyzeRepository.save(questionAnalyze);
 
                 // for문 [0.88,2] 같은 배열의 갯수 만큼
-                List<Object> subList = (List<Object>) dataList.get(1);
                 // [[0.88,3],[0.8,5]]
-                for (int i = 0; i < subList.size(); i++) {
+                for (int i = 0; i < dataList.size()-1; i++) {
+                    List<Object> subList = (List<Object>) dataList.get(i+1);
                     ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
-                    List<Object> subbList = (List<Object>) subList.get(i);
-                    double support = (double) subbList.get(0);
-                    Long choiceId2 = Long.valueOf((Integer) subbList.get(1));
+                    double support = (double) subList.get(0);
+                    Long choiceId2 = Long.valueOf((Integer) subList.get(1));
                     choiceAnalyze = choiceAnalyze.builder()
                             .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
                             .support(support)
