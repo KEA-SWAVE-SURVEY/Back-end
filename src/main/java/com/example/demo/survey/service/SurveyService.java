@@ -6,6 +6,8 @@ import com.example.demo.survey.exception.InvalidPythonException;
 import com.example.demo.survey.exception.InvalidSurveyException;
 import com.example.demo.survey.exception.InvalidTokenException;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
+import com.example.demo.survey.repository.choiceAnalyze.ChoiceAnalyzeRepository;
+import com.example.demo.survey.repository.questionAnlayze.QuestionAnalyzeRepository;
 import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
 import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
 import com.example.demo.survey.repository.survey.SurveyRepository;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +42,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class SurveyService {
+    private final ChoiceAnalyzeRepository choiceAnalyzeRepository;
+    private final QuestionAnalyzeRepository questionAnalyzeRepository;
 
     private final UserService2 userService;
     private final UserRepository userRepository;
@@ -199,23 +204,40 @@ public class SurveyService {
         try {
             Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
 
-//            {
-//                1(surveyDocumentId)
-//                    {
-//                        1(questionId)성별;
-//                        1(choiceId)남자;
-//                        {
-//                            0.88(support);
-//                            2(choiceId)싫음;
-//                        }
-//                    }
-//            }
-//            [1,[1,1,[[0.88,2],[0.80,3]]]]
-//            {
-//        }
-            // todo: 값 분리해서 리스트로 저장
-            Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
-//            SurveyAnalyzeDto surveyAnalyzeDto = new SurveyAnalyzeDto;
+            /**
+             [1(남성의choiceId),
+              [
+                [0.88,2(짜장의ChoiceId)],
+                [0.80,3(싫음의ChoiceId)]
+              ]
+             ]
+             **/
+
+            // todo: 값 분리해서 Analyze DB에 저장
+            SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyDocumentId);
+            if (surveyAnalyze != null) {
+                Long id = surveyAnalyze.getId();
+                surveyAnalyzeRepository.deleteAllById(Collections.singleton(id));
+            }
+            Optional<SurveyDocument> byId = surveyDocumentRepository.findById(surveyDocumentId);
+            surveyAnalyze.builder()
+                    .surveyDocumentId(byId.get())
+                    .questionAnalyzeList(new ArrayList<>())
+                    .build();
+
+            surveyAnalyzeRepository.save(surveyAnalyze);
+
+            //for 위의 예시의 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
+            QuestionAnalyze questionAnalyze = new QuestionAnalyze();
+            questionAnalyze.builder()
+                    .surveyAnalyzeId(surveyAnalyze)
+                    .choiceId(1L)
+                    .choiceTitle(choiceRepository.findById(1L).get().getTitle())
+                    .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(1L).get().getQuestion_id().getId()).get().getTitle())
+                    .choiceAnalyzeList(new ArrayList<>())
+                    .build();
+
+
 
         } catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
@@ -284,7 +306,7 @@ public class SurveyService {
         checkInvalidToken(request);
     }
 
-    // 분석 상세 분석
+    // 분석 상세 분석 Get
     public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
