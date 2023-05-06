@@ -1,6 +1,6 @@
 package com.example.demo.survey.service;
 
-import com.example.demo.survey.analyze.SurveyAnalyzeDto;
+import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
 import com.example.demo.survey.exception.InvalidSurveyException;
@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -227,7 +226,7 @@ public class SurveyService {
              * ]
              */
 
-            // todo: 값 분리해서 Analyze DB에 저장
+            // 값 분리해서 Analyze DB에 저장
             SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyDocumentId);
             // 과거의 분석 결과 있으면 questionAnalyze delete & null 주입
             if (surveyAnalyze != null) {
@@ -346,13 +345,12 @@ public class SurveyService {
     }
 
     // 분석 상세 분석 Get
-    public SurveyAnalyze readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+    public SurveyAnalyzeDto readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
 
-        checkInvalidToken(request);
-
-        return surveyAnalyze;
+//        checkInvalidToken(request);
+        return getSurveyDetailAnalyzeDto(surveyAnalyze.getId());
     }
 
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
@@ -397,4 +395,37 @@ public class SurveyService {
 
         return surveyDetailDto;
     }
+
+    private SurveyAnalyzeDto getSurveyDetailAnalyzeDto(Long surveyId) {
+        SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findById(surveyId).get();
+        SurveyAnalyzeDto surveyAnalyzeDto = new SurveyAnalyzeDto();
+
+        // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
+        surveyAnalyzeDto.setId(surveyAnalyze.getId());
+
+        List<QuestionAnalyzeDto> questionDtos = new ArrayList<>();
+        for (QuestionAnalyze questionAnalyze : surveyAnalyze.getQuestionAnalyzeList()) {
+            QuestionAnalyzeDto questionDto = new QuestionAnalyzeDto();
+            questionDto.setId(questionAnalyze.getId());
+            questionDto.setChoiceTitle(questionAnalyze.getChoiceTitle());
+            questionDto.setQuestionTitle(questionAnalyze.getQuestionTitle());
+
+            List<ChoiceAnalyzeDto> choiceDtos = new ArrayList<>();
+            for (ChoiceAnalyze choice : questionAnalyze.getChoiceAnalyzeList()) {
+                ChoiceAnalyzeDto choiceDto = new ChoiceAnalyzeDto();
+                choiceDto.setId(choice.getId());
+                choiceDto.setChoiceTitle(choice.getChoiceTitle());
+                choiceDto.setSupport(choice.getSupport());
+                choiceDto.setQuestionTitle(choice.getQuestionTitle());
+                choiceDtos.add(choiceDto);
+            }
+            questionDto.setChoiceAnalyzeList(choiceDtos);
+
+            questionDtos.add(questionDto);
+        }
+        surveyAnalyzeDto.setQuestionAnalyzeList(questionDtos);
+
+        return surveyAnalyzeDto;
+    }
+
 }

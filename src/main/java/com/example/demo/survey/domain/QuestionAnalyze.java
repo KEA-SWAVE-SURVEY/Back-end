@@ -1,6 +1,5 @@
 package com.example.demo.survey.domain;
 
-import com.example.demo.survey.analyze.ChoiceAnalyzeDto;
 import jakarta.persistence.*;
 import lombok.*;
 
