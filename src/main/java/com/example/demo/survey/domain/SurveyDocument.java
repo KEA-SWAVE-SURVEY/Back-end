@@ -36,7 +36,7 @@ public class SurveyDocument {
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
-    @OneToOne(mappedBy = "surveyDocument", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @OneToOne(mappedBy = "surveyDocument", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false, orphanRemoval = true)
     private SurveyAnalyze surveyAnalyze;
 
     @ManyToOne

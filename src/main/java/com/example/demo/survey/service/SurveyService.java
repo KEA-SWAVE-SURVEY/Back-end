@@ -235,7 +235,7 @@ public class SurveyService {
              ]
              **/
 
-            String inputString = "[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]";
+            String inputString = line;
 
             ObjectMapper objectMapper = new ObjectMapper();
             List<Object> List = objectMapper.readValue(inputString, List.class);
@@ -255,9 +255,7 @@ public class SurveyService {
             // 과거의 분석 결과 있으면 questionAnalyze delete & null 주입
             if (surveyAnalyze != null) {
                 Long id = surveyAnalyze.getId();
-                QuestionAnalyze qbySurveyAnalyzeId = questionAnalyzeRepository.findBySurveyAnalyzeId(id);
-                questionAnalyzeRepository.delete(qbySurveyAnalyzeId);
-                surveyAnalyze.setQuestionAnalyzeList(new ArrayList<>());
+                questionAnalyzeRepository.deleteAllBySurveyAnalyzeId(surveyAnalyze);
             } else {
                 surveyAnalyze = SurveyAnalyze.builder()
                         .surveyDocument(surveyDocumentRepository.findById(surveyDocumentId).get())

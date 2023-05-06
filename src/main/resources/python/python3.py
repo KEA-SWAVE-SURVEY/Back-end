@@ -1,7 +1,7 @@
 import sys
 
 def sum(v1):
-    result = "SurveyDocument is " + v1
+    result = "[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]"
     print(result)
 
 
