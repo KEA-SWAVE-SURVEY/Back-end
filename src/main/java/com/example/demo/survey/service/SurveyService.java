@@ -22,6 +22,7 @@ import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
 import com.example.demo.util.page.PageRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -200,46 +201,86 @@ public class SurveyService {
     // 파이썬으로 DocumentId 보내줌
     public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
         try {
-            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
+//            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
 
             /**
              [1(남성의choiceId),
               [
-                [0.88,2(짜장의ChoiceId)],
-                [0.80,3(싫음의ChoiceId)]
+                [0.88,3(짜장의ChoiceId)],
+                [0.80,5(싫음의ChoiceId)]
               ]
              ]
              **/
 
+            String inputString = "[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]";
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Object> List = objectMapper.readValue(inputString, List.class);
+            /**
+             * dataList
+             * [1,
+             *   [
+             *     [0.88, 2],
+             *     [0.8, 3],
+             *     ...
+             *   ]
+             * ]
+             */
+
             // todo: 값 분리해서 Analyze DB에 저장
             SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyDocumentId);
+            // 과거의 분석 결과 있으면 questionAnalyze delete & null 주입
             if (surveyAnalyze != null) {
                 Long id = surveyAnalyze.getId();
-                surveyAnalyzeRepository.deleteAllById(Collections.singleton(id));
+                QuestionAnalyze qbySurveyAnalyzeId = questionAnalyzeRepository.findBySurveyAnalyzeId(id);
+                questionAnalyzeRepository.delete(qbySurveyAnalyzeId);
+                surveyAnalyze.setQuestionAnalyzeList(new ArrayList<>());
+            } else {
+                surveyAnalyze = SurveyAnalyze.builder()
+                        .surveyDocument(surveyDocumentRepository.findById(surveyDocumentId).get())
+                        .questionAnalyzeList(new ArrayList<>())
+                        .build();
             }
-            Optional<SurveyDocument> byId = surveyDocumentRepository.findById(surveyDocumentId);
-            surveyAnalyze.builder()
-                    .surveyDocumentId(byId.get())
-                    .questionAnalyzeList(new ArrayList<>())
-                    .build();
 
             surveyAnalyzeRepository.save(surveyAnalyze);
+            //for 위의 예시(남성의 갯수) 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
+            //[1,[[0.88,2],[0.8,3]]]
+            //[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]
+            for (int j = 0; j < List.size(); j++) {
+                java.util.List<Object> dataList = (List<Object>) List.get(j);
+                Long choiceId = Long.valueOf((Integer) dataList.get(0));
+                QuestionAnalyze questionAnalyze = new QuestionAnalyze();
+                questionAnalyze = QuestionAnalyze.builder()
+                        .surveyAnalyzeId(surveyAnalyze)
+                        .choiceId(choiceId)
+                        .choiceTitle(choiceRepository.findById(choiceId).get().getTitle())
+                        .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId).get().getQuestion_id().getId()).get().getTitle())
+                        .choiceAnalyzeList(new ArrayList<>())
+                        .build();
 
-            //for 위의 예시의 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
-            QuestionAnalyze questionAnalyze = new QuestionAnalyze();
-            questionAnalyze.builder()
-                    .surveyAnalyzeId(surveyAnalyze)
-                    .choiceId(1L)
-                    .choiceTitle(choiceRepository.findById(1L).get().getTitle())
-                    .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(1L).get().getQuestion_id().getId()).get().getTitle())
-                    .choiceAnalyzeList(new ArrayList<>())
-                    .build();
+                questionAnalyzeRepository.save(questionAnalyze);
 
-
-
+                // for문 [0.88,2] 같은 배열의 갯수 만큼
+                List<Object> subList = (List<Object>) dataList.get(1);
+                // [[0.88,3],[0.8,5]]
+                for (int i = 0; i < subList.size(); i++) {
+                    ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
+                    List<Object> subbList = (List<Object>) subList.get(i);
+                    double support = (double) subbList.get(0);
+                    Long choiceId2 = Long.valueOf((Integer) subbList.get(1));
+                    choiceAnalyze = choiceAnalyze.builder()
+                            .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
+                            .support(support)
+                            .questionAnalyzeId(questionAnalyze)
+                            .choiceId(choiceId2)
+                            .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId2).get().getQuestion_id().getId()).get().getTitle())
+                            .build();
+                    choiceAnalyzeRepository.save(choiceAnalyze);
+                }
+            }
         } catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
-            throw new InvalidPythonException();
+            throw new InvalidPythonException(e);
         }
     }
 

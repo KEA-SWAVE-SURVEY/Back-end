@@ -2,14 +2,12 @@ package com.example.demo.survey.domain;
 
 import com.example.demo.survey.analyze.ChoiceAnalyzeDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
