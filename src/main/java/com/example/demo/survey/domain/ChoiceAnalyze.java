@@ -16,7 +16,7 @@ public class ChoiceAnalyze {
     @Column(name = "support", nullable = false)
     private double support;
     //하나만 가져옴
-    @Column(name = "choice_id_연관분석된_choice_id")
+    @Column(name = "연관분석된_choice_id")
     private long choiceId;
     @Column(name = "question_title")
     private String questionTitle;
