@@ -31,7 +31,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -136,14 +138,14 @@ public class SurveyService {
         return surveyRepository.surveyDocumentPaging(user, pageable);
     }
 
-    public SurveyDocument readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
+    public SurveyDetailDto readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
 
-//        checkInvalidToken(request);
+        checkInvalidToken(request);
 //        User user = userService.getUser(request);
 //
 //        surveyRepository.findByUser(user.getId())
 //                .getSurveyDocumentList().get()
-        return null;
+        return getSurveyDetailDto(id);
     }
 
     // 설문 응답 참여
@@ -197,10 +199,32 @@ public class SurveyService {
         surveyRepository.save(survey);
     }
 
-    // 파이썬으로 DocumentId 보내줌
+    // 파이썬으로 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
     public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
         try {
-//            Process process = new ProcessBuilder("python", "python", String.valueOf(surveyDocumentId)).start();
+            System.out.println("pythonbuilder ");
+            String arg1;
+            ProcessBuilder builder;
+            BufferedReader br;
+
+            builder = new ProcessBuilder("python", "./src/main/resources/python/python3.py", String.valueOf(surveyDocumentId));
+
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+
+            // 자식 프로세스가 종료될 때까지 기다림
+            int exitval = process.waitFor();
+
+            //// 서브 프로세스가 출력하는 내용을 받기 위해
+            br = new BufferedReader(new InputStreamReader(process.getInputStream(),"UTF-8"));
+
+            String line = br.readLine();
+            log.info(line);
+
+            if(exitval !=0){
+                //비정상종료
+                System.out.println("비정상종료");
+            }
 
             /**
              [1(남성의choiceId),
@@ -211,7 +235,7 @@ public class SurveyService {
              ]
              **/
 
-            String inputString = "[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]";
+            String inputString = line;
 
             ObjectMapper objectMapper = new ObjectMapper();
             List<Object> List = objectMapper.readValue(inputString, List.class);
@@ -231,9 +255,7 @@ public class SurveyService {
             // 과거의 분석 결과 있으면 questionAnalyze delete & null 주입
             if (surveyAnalyze != null) {
                 Long id = surveyAnalyze.getId();
-                QuestionAnalyze qbySurveyAnalyzeId = questionAnalyzeRepository.findBySurveyAnalyzeId(id);
-                questionAnalyzeRepository.delete(qbySurveyAnalyzeId);
-                surveyAnalyze.setQuestionAnalyzeList(new ArrayList<>());
+                questionAnalyzeRepository.deleteAllBySurveyAnalyzeId(surveyAnalyze);
             } else {
                 surveyAnalyze = SurveyAnalyze.builder()
                         .surveyDocument(surveyDocumentRepository.findById(surveyDocumentId).get())
@@ -243,7 +265,6 @@ public class SurveyService {
 
             surveyAnalyzeRepository.save(surveyAnalyze);
             //for 위의 예시(남성의 갯수) 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
-            //[1,[[0.88,2],[0.8,3]]]
             //[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]
             for (int j = 0; j < List.size(); j++) {
                 java.util.List<Object> dataList = (List<Object>) List.get(j);
@@ -279,7 +300,10 @@ public class SurveyService {
             }
         } catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
+            // python 파일 오류
             throw new InvalidPythonException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
