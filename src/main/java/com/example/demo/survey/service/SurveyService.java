@@ -216,24 +216,18 @@ public class SurveyService {
             ProcessBuilder builder;
             BufferedReader br;
 
-            builder = new ProcessBuilder("python", "./src/main/resources/python/python3.py", String.valueOf(surveyDocumentId));
+            builder = new ProcessBuilder("python", "./src/main/resources/python/python2.py", String.valueOf(surveyDocumentId));
 
             builder.redirectErrorStream(true);
             Process process = builder.start();
 
             // 자식 프로세스가 종료될 때까지 기다림
-            int exitval = process.waitFor();
+            process.waitFor();
 
             //// 서브 프로세스가 출력하는 내용을 받기 위해
             br = new BufferedReader(new InputStreamReader(process.getInputStream(),"UTF-8"));
 
             String line = br.readLine();
-            log.info(line);
-
-            if(exitval !=0){
-                //비정상종료
-                System.out.println("비정상종료");
-            }
 
             /**
              [1(남성의choiceId),
@@ -245,6 +239,7 @@ public class SurveyService {
              **/
 
             String inputString = line.replaceAll("'", "");
+            log.info("result python: ", inputString);
 
             ObjectMapper objectMapper = new ObjectMapper();
             List<Object> List = objectMapper.readValue(inputString, List.class);
@@ -294,7 +289,7 @@ public class SurveyService {
                 for (int i = 0; i < dataList.size()-1; i++) {
                     List<Object> subList = (List<Object>) dataList.get(i+1);
                     ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
-                    double support = (double) subList.get(0);
+                    double support = Math.round((double) subList.get(0) *1000) / 1000.0;
                     Long choiceId2 = Long.valueOf((Integer) subList.get(1));
                     choiceAnalyze = choiceAnalyze.builder()
                             .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
@@ -416,6 +411,7 @@ public class SurveyService {
                 ChoiceDetailDto choiceDto = new ChoiceDetailDto();
                 choiceDto.setId(choice.getId());
                 choiceDto.setTitle(choice.getTitle());
+                choiceDto.setCount(choice.getCount());
 
                 choiceDtos.add(choiceDto);
             }
