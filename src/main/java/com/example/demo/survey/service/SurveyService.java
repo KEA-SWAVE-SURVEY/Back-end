@@ -221,7 +221,6 @@ public class SurveyService {
             br = new BufferedReader(new InputStreamReader(process.getInputStream(),"UTF-8"));
 
             String line = br.readLine();
-            log.info(line);
 
             /**
              [1(남성의choiceId),
@@ -233,6 +232,7 @@ public class SurveyService {
              **/
 
             String inputString = line.replaceAll("'", "");
+            log.info("result python: ", inputString);
 
             ObjectMapper objectMapper = new ObjectMapper();
             List<Object> List = objectMapper.readValue(inputString, List.class);
