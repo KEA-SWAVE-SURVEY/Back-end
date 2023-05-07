@@ -1,16 +1,16 @@
 package com.example.demo.user.domain;
 
 import com.example.demo.survey.domain.Survey;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "user_master")
 public class User {
@@ -31,6 +31,7 @@ public class User {
     private String userRole;
 
     @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Survey survey;
 
     @CreationTimestamp //(4)

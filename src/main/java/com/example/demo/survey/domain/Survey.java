@@ -1,10 +1,10 @@
 package com.example.demo.survey.domain;
 
 import com.example.demo.user.domain.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,8 +12,10 @@ import java.util.List;
  * 2023-04-23 Gihyun Kim
  * Survey Document 와 Survey answer 를 저장할 Survey Entity
  */
-@Data
+
 @Entity
+@Getter
+@Setter
 @NoArgsConstructor
 public class Survey {
 
@@ -22,14 +24,17 @@ public class Survey {
     private Long id;
 
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "user_Id")
     private User user;
 
     @OneToMany(mappedBy = "survey", fetch = FetchType.LAZY)
+    @JsonIgnore //순환참조 방지
     @Column(name = "survey_documentList")
     private List<SurveyDocument> surveyDocumentList;
 
     @OneToMany(mappedBy = "survey", fetch = FetchType.LAZY)
+    @JsonIgnore //순환참조 방지
     @Column(name = "survey_answerList")
     private List<SurveyAnswer> surveyAnswerList;
 

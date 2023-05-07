@@ -1,19 +1,28 @@
 package com.example.demo.user.controller;
 
 
+import com.example.demo.survey.exception.InvalidTokenException;
+import com.example.demo.survey.response.SurveyDetailDto;
+import com.example.demo.survey.response.SurveyMyPageDto;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.service.UserService2;
 import com.example.demo.util.OAuth.JwtProperties;
 import com.example.demo.util.OAuth.OauthToken;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
+@Getter
+@Setter
 @RequestMapping("/api")
 public class UserController {
     @Autowired
@@ -55,6 +64,14 @@ public class UserController {
         System.out.println(user.getNickname());
         System.out.println(data);
         return ResponseEntity.ok().body(user);
+    }
+
+
+    @GetMapping("/mypage")
+    public List<SurveyMyPageDto> getMyPage(HttpServletRequest request) throws InvalidTokenException { //(1)
+        User user = userService2.getUser(request);
+        System.out.println(user.getUserCode());
+        return userService2.mySurveyList(request);
     }
 
 }

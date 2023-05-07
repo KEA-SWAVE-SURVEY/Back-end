@@ -1,5 +1,7 @@
 package com.example.demo.survey.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +20,7 @@ public class Choice {
     private int count;
 
     @ManyToOne
+    @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "question_id")
     private QuestionDocument question_id;
 
