@@ -11,6 +11,7 @@ import com.example.demo.survey.repository.survey.SurveyRepositoryCustom;
 import com.example.demo.survey.repository.survey.SurveyRepositoryImpl;
 import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
+import com.example.demo.survey.request.PageRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.service.SurveyService;
@@ -181,29 +182,80 @@ public class SurveyDocumentServiceTest {
         questionList.add(questionRequest2);
         questionList.add(questionRequest0);
 
-        SurveyRequestDto surveyRequest = SurveyRequestDto.builder()
+        SurveyRequestDto surveyRequest1 = SurveyRequestDto.builder()
                 .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
-                .title("설문 제목 테스트")
-                .description("설문 설명 테스트")
+                .title("설문 제목 테스트1")
+                .description("설문 설명 테스트1")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest2 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트2")
+                .description("설문 설명 테스트2")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest3 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트3")
+                .description("설문 설명 테스트3")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest4 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트4")
+                .description("설문 설명 테스트4")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest5 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트5")
+                .description("설문 설명 테스트5")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest6 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트6")
+                .description("설문 설명 테스트6")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest7 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트7")
+                .description("설문 설명 테스트7")
+                .questionRequest(questionList)
+                .build();
+        SurveyRequestDto surveyRequest8 = SurveyRequestDto.builder()
+                .type(0) // 대화형 설문인지 다른 설문인지 구분하는 type
+                .title("설문 제목 테스트8")
+                .description("설문 설명 테스트8")
                 .questionRequest(questionList)
                 .build();
 
         // when
-        surveyService.createSurvey(servletRequest, surveyRequest);
+        surveyService.createSurvey(servletRequest, surveyRequest1);
+        surveyService.createSurvey(servletRequest, surveyRequest2);
+        surveyService.createSurvey(servletRequest, surveyRequest3);
+        surveyService.createSurvey(servletRequest, surveyRequest4);
+        surveyService.createSurvey(servletRequest, surveyRequest5);
+        surveyService.createSurvey(servletRequest, surveyRequest6);
+        surveyService.createSurvey(servletRequest, surveyRequest7);
+        surveyService.createSurvey(servletRequest, surveyRequest8);
 
 
         // when
-        PageRequest pageRequest = new PageRequest("list", "title", "ascending");
-        Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
-        SurveyDocument findSurveyDocument = surveyRepositoryImpl.getSurveyDocumentList(userService.getUser(servletRequest), pageable).get(0);
+        PageRequestDto pageRequestDto = new PageRequestDto("list", 1, "title", "ascending");
+        Page<SurveyDocument> pageImpl = surveyService.readSurveyList(servletRequest, pageRequestDto);
 
 
         // then
-//        assertEquals(1, pageImpl.getContent().size());
-//        assertEquals(1, pageImpl.getTotalPages());
-//        assertEquals(0, pageImpl.getNumber());
-        assertEquals(findSurveyDocument.getTitle(), surveyRequest.getTitle());
-        assertEquals(findSurveyDocument.getDescription(), surveyRequest.getDescription());
+        assertEquals(5, pageImpl.getContent().size());
+        assertEquals(1, pageImpl.getTotalPages());
+        assertEquals(0, pageImpl.getNumber());
+        int i = 1;
+        for(SurveyDocument surveyInPage : pageImpl.getContent()) {
+            assertEquals(surveyInPage.getTitle(), surveyDocumentRepository.findByTitle("설문 제목 테스트" + i).getTitle());
+            i++;
+        }
     }
 
     @Test @DisplayName("설문 리스트 페이징 처리 조회")

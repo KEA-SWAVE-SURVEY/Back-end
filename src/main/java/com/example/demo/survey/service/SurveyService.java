@@ -15,6 +15,7 @@ import com.example.demo.survey.repository.surveyAnalyze.SurveyAnalyzeRepository;
 import com.example.demo.survey.repository.surveyAnswer.SurveyAnswerRepository;
 import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
+import com.example.demo.survey.request.PageRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.response.*;
@@ -122,18 +123,24 @@ public class SurveyService {
 
     }
 
-    public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequest pageRequest) throws Exception {
+    public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequestDto pageRequest) throws Exception {
 
         checkInvalidToken(request);
 
         User user = userService.getUser(request);
+        PageRequest page = PageRequest.builder()
+                .page(pageRequest.getPage())
+                .method(pageRequest.getMethod())
+                .sortProperties(pageRequest.getSort1()) // date or title
+                .direct(pageRequest.getSort2()) // ascending or descending
+                .build();
 
         // Request Method
         // 1. view Method : grid or list
         // 2. what page number
         // 3. sort on What : date or title
         // 4. sort on How : ascending or descending
-        Pageable pageable = pageRequest.of(pageRequest.getSortProperties(), pageRequest.getDirection(pageRequest.getDirect()));
+        Pageable pageable = page.of(page.getSortProperties(), page.getDirection(page.getDirect()));
 
         return surveyRepository.surveyDocumentPaging(user, pageable);
     }

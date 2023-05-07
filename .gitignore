@@ -50,5 +50,4 @@ out/
 npm-debug.log*
 
 #properties
-*.properties
 .properties
