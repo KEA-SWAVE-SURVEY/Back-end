@@ -282,7 +282,7 @@ public class SurveyService {
                 for (int i = 0; i < dataList.size()-1; i++) {
                     List<Object> subList = (List<Object>) dataList.get(i+1);
                     ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
-                    double support = (double) subList.get(0);
+                    double support = Math.round((double) subList.get(0) *1000) / 1000.0;
                     Long choiceId2 = Long.valueOf((Integer) subList.get(1));
                     choiceAnalyze = choiceAnalyze.builder()
                             .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
@@ -404,6 +404,7 @@ public class SurveyService {
                 ChoiceDetailDto choiceDto = new ChoiceDetailDto();
                 choiceDto.setId(choice.getId());
                 choiceDto.setTitle(choice.getTitle());
+                choiceDto.setCount(choice.getCount());
 
                 choiceDtos.add(choiceDto);
             }
