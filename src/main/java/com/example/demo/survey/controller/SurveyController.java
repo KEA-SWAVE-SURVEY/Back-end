@@ -3,6 +3,7 @@ package com.example.demo.survey.controller;
 import com.example.demo.survey.domain.SurveyAnalyze;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
+import com.example.demo.survey.request.PageRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.response.SurveyDetailDto;
 import com.example.demo.survey.response.SurveyManageDto;
@@ -31,7 +32,7 @@ public class SurveyController {
     }
 
     @PostMapping(value = "/api/survey-list")
-    public Page<SurveyDocument> readList(HttpServletRequest request, @RequestBody PageRequest pageRequest) throws Exception {
+    public Page<SurveyDocument> readList(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) throws Exception {
         return surveyService.readSurveyList(request, pageRequest);
     }
 
