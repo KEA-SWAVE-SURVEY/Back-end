@@ -1,5 +1,7 @@
 package com.example.demo.survey.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +24,7 @@ public class QuestionAnswer {
     private Long checkAnswerId;
 
     @ManyToOne
+    @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "survey_answer_id")
     private SurveyAnswer surveyAnswerId;
 

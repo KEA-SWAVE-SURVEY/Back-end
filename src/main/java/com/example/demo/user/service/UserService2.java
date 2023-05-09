@@ -2,6 +2,16 @@ package com.example.demo.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.example.demo.survey.domain.QuestionDocument;
+import com.example.demo.survey.domain.Survey;
+import com.example.demo.survey.domain.SurveyDocument;
+import com.example.demo.survey.exception.InvalidTokenException;
+import com.example.demo.survey.repository.survey.SurveyRepository;
+import com.example.demo.survey.repository.survey.SurveyRepositoryCustom;
+import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
+import com.example.demo.survey.response.QuestionDetailDto;
+import com.example.demo.survey.response.SurveyDetailDto;
+import com.example.demo.survey.response.SurveyMyPageDto;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.exception.UserNotFoundException;
 import com.example.demo.user.repository.UserRepository;
@@ -27,10 +37,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import java.util.Date;
-import java.util.Optional;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
 
 @Slf4j
 @Service
@@ -395,13 +403,44 @@ public class UserService2 {
         return jwtToken;
     }
 
+//    List<QuestionDetailDto> questionDtos = new ArrayList<>();
+//        for (
+//    QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
+//        QuestionDetailDto questionDto = new QuestionDetailDto();
+//        questionDto.setId(questionDocument.getId());
+//        questionDto.setTitle(questionDocument.getTitle());
+//        questionDto.setQuestionType(questionDocument.getQuestionType());
+    public List<SurveyMyPageDto> mySurveyList(HttpServletRequest request) throws InvalidTokenException {
+        checkInvalidToken(request);
+        List<SurveyMyPageDto> surveyMyPageDtos = new ArrayList<>();
+
+        Survey survey= getUser(request).getSurvey();
+        System.out.println(survey);
+        for(SurveyDocument surveyDocument:survey.getSurveyDocumentList()){
+            SurveyMyPageDto surveyMyPageDto = new SurveyMyPageDto();
+            surveyMyPageDto.setId(surveyDocument.getId());
+            surveyMyPageDto.setDescription(surveyDocument.getDescription());
+            surveyMyPageDto.setTitle(surveyDocument.getTitle());
+            surveyMyPageDto.setDeadline(surveyDocument.getDeadline());
+            surveyMyPageDto.setStartDate(surveyDocument.getStartDate());
+            surveyMyPageDtos.add(surveyMyPageDto);
+
+        }
+        return surveyMyPageDtos;
+    }
+
     public User getUser(HttpServletRequest request) { //(1)
         Long userCode = (Long) request.getAttribute("userCode");
-
-        //회원 정보 조회 검사
-        User user = userRepository.findByUserCode(userCode)
-                .orElseThrow(UserNotFoundException::new);
-
+        User user = userRepository.findByUserCode(userCode).orElseThrow(UserNotFoundException::new);
         return user;
     }
+
+    private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
+        if(request.getHeader("Authorization") == null) {
+            log.info("error");
+            throw new InvalidTokenException();
+        }
+        log.info("토큰 체크 완료");
+    }
+
 }

@@ -39,7 +39,7 @@ public class SurveyController {
     }
 
     // 설문 참여
-    @GetMapping(value = "/api/survey-participate/{surveyId}")
+    @GetMapping(value = "/api/load-survey/{surveyId}")
     public SurveyDetailDto participateSurvey(@PathVariable Long surveyId) {
         return surveyService.getParticipantSurvey(surveyId);
     }
