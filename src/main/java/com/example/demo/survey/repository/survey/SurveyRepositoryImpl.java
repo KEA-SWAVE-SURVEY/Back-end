@@ -39,20 +39,29 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
         QSurvey survey = QSurvey.survey;
         QUser user = QUser.user;
 
-        List<SurveyDocument> results = jpaQueryFactory
-                .selectFrom(surveyDocument)
-                .leftJoin(surveyDocument.survey).on(survey.user.eq(userRequest))
+        List<SurveyDocument> result = jpaQueryFactory
+                .select(surveyDocument)
+                .from(surveyDocument)
+                .where(surveyDocument.survey.user.eq(userRequest))
                 .orderBy(SurveyDocumentSort(pageable))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-        return results;
+
+//        List<SurveyDocument> results = jpaQueryFactory
+//                .selectFrom(surveyDocument)
+//                .leftJoin(surveyDocument.survey).on(survey.user.eq(userRequest))
+//                .orderBy(SurveyDocumentSort(pageable))
+//                .offset(pageable.getOffset())
+//                .limit(pageable.getPageSize())
+//                .fetch();
+        return result;
     }
 
     // survey Document 를 gird 형식으로 조회할 때 페이징 처리 없이 모두 다 조회
     public List<SurveyDocument> getSurveyDocumentListGrid(HttpServletRequest request, PageRequestDto pageRequest) {
-        String sort1 = pageRequest.getSort1();
-        String sort2 = pageRequest.getSort2();
+        String sort1 = pageRequest.getSort1(); // date or title
+        String sort2 = pageRequest.getSort2(); // ascending or descending
         return null;
     }
 
