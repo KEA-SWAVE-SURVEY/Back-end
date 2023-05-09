@@ -128,6 +128,11 @@ public class SurveyService {
         checkInvalidToken(request);
 
         User user = userService.getUser(request);
+        // gird 일 경우 그냥 다 보여주기
+//        if(pageRequest.getMethod().equals("grid")) {
+//            return surveyRepository.getSurveyDocumentListGrid();
+//        }
+
         PageRequest page = PageRequest.builder()
                 .page(pageRequest.getPage())
                 .method(pageRequest.getMethod())

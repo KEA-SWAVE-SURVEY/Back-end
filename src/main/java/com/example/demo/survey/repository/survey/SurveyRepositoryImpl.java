@@ -46,6 +46,12 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
         return results;
     }
 
+    // survey Document 를 gird 형식으로 조회할 때 페이징 처리 없이 모두 다 조회
+    public List<SurveyDocument> getSurveyDocumentListGrid() {
+
+        return null;
+    }
+
     // survey document 상세 조회
     @Override
     public SurveyDocument surveyDocumentDetail(User userRequest, SurveyDocument surveyDocumentRequest) {
@@ -72,7 +78,7 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
                 Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
                 // 서비스에서 넣어준 정렬 조건을 스위치 케이스 문을 활용하여 셋팅하여 준다.
                 switch (order.getProperty()){
-                    case "startDate" :
+                    case "date" :
                         log.info("날짜 순으로 정렬");
                         return new OrderSpecifier(direction, surveyDocument.startDate);
                     case "title":
