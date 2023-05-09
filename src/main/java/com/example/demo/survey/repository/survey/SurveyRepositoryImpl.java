@@ -85,4 +85,16 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
         return null;
     }
 
+    public List<SurveyDocument> findBySurveyList(User userRequest){
+        QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
+        QSurvey survey = QSurvey.survey;
+        QUser user = QUser.user;
+
+        List<SurveyDocument> results = jpaQueryFactory
+                .selectFrom(surveyDocument)
+                .leftJoin(surveyDocument.survey).on(survey.user.eq(userRequest))
+                .fetch();
+        return results;
+    }
+
 }

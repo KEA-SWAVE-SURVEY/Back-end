@@ -1,5 +1,8 @@
 package com.example.demo.survey.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +30,12 @@ public class SurveyAnswer {
     private Long surveyDocumentId;
 
     @OneToMany(mappedBy = "surveyAnswerId", fetch = FetchType.LAZY)
+    @JsonIgnore //순환참조 방지
     @Column(name = "content")
     private List<QuestionAnswer> questionanswersList;
 
     @ManyToOne
+    @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "survey_id")
     private Survey survey;
 

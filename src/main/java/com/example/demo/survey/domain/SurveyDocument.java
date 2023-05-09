@@ -1,5 +1,8 @@
 package com.example.demo.survey.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
@@ -33,13 +36,16 @@ public class SurveyDocument {
     private String url;
 
     @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
+    @JsonIgnore //순환참조 방지
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;
 
     @OneToOne(mappedBy = "surveyDocument", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false, orphanRemoval = true)
+    @JsonIgnore
     private SurveyAnalyze surveyAnalyze;
 
     @ManyToOne
+    @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "survey_id")
     private Survey survey;
 
