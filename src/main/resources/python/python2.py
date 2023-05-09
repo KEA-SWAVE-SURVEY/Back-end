@@ -38,15 +38,16 @@ def analyze_for_all(survey_document_id):
     # print()
     # 끝
     rdb = f'SELECT survey_answer_id FROM SURVEY_ANSWER where survey_document_id='+survey_document_id
+
     sourceCursor.execute(rdb)
     resultSources = sourceCursor.fetchall()
+    # print("첫번째 sql")
+    # print(resultSources)
     temp = []
     for i in resultSources:
         temp.append(i[0])
     tempResult = []
-    rdb = f'SELECT survey_document_Id FROM SURVEY_ANSWER where survey_answer_id={temp[0]}'
-    sourceCursor.execute(rdb)
-    resultSources = sourceCursor.fetchall()
+
     # print(resultSources)
     for i in temp:
         rdb = f'SELECT check_answer_id FROM QUESTION_ANSWER where survey_answer_id={i}'
@@ -58,6 +59,7 @@ def analyze_for_all(survey_document_id):
             answer.append(t[0])
         tempResult.append(answer)
     resultSources = tempResult
+    # print(resultSources)
 
     totalCount = len(resultSources)
     # apriori 구현을 위하여 문항별 마스킹
@@ -130,7 +132,10 @@ def analyze_for_all(survey_document_id):
                         select.append([ultimateApriori[i][t][p][p1][0],ultimateApriori[i][t][p][p1][1][0][-1]])
 
             result_list.append(select)
-    print(result_list)
+    if (len(result_list) == 0):
+        print("문항 1개 오류")
+    else:
+        print(result_list)
 
     return result_list
 

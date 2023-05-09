@@ -179,9 +179,9 @@ public class SurveyService {
                 .description(surveyResponse.getDescription())
                 .type(surveyResponse.getType())
                 .surveyDocumentId(surveyDocumentId)
+                .questionAnswerList(new ArrayList<>())
                 .build();
         surveyAnswerRepository.save(surveyAnswer);
-
 
         // Survey Response 를 Question Answer 에 저장하기
         surveyAnswerRepository.findById(surveyAnswer.getId());
@@ -205,12 +205,12 @@ public class SurveyService {
                     choiceRepository.save(findChoice.get());
                 }
             }
+            surveyAnswer.setQuestion(questionAnswer);
         }
+        surveyAnswerRepository.flush();
         // 저장된 설문 응답을 Survey 에 연결 및 저장
-        List<SurveyAnswer> surveyAnswerList = survey.getSurveyAnswerList();
-        surveyAnswerList.add(surveyAnswer);
-        survey.setSurveyAnswerList(surveyAnswerList);
-        surveyRepository.save(survey);
+        survey.setAnswer(surveyAnswer);
+        surveyRepository.flush();
     }
 
     // 파이썬으로 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
