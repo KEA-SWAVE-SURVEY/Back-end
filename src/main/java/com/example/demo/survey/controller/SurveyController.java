@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.UnknownHostException;
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", allowCredentials = "true")
@@ -22,12 +25,16 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @PostMapping(value = "/api/create")
-    public String create(HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws InvalidTokenException {
+    public String create(HttpServletRequest request, @RequestBody SurveyRequestDto surveyForm) throws InvalidTokenException, UnknownHostException {
         surveyService.createSurvey(request, surveyForm);
 
         return "Success";
     }
 
+    @PostMapping(value = "/api/survey-list-grid")
+    public List<SurveyDocument> readListGrid(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) throws Exception {
+        return surveyService.readSurveyListByGrid(request, pageRequest);
+    }
     @PostMapping(value = "/api/survey-list")
     public Page<SurveyDocument> readList(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) throws Exception {
         return surveyService.readSurveyList(request, pageRequest);

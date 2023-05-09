@@ -35,6 +35,9 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +62,7 @@ public class SurveyService {
     private final SurveyAnalyzeRepository surveyAnalyzeRepository;
 
     @Transactional
-    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException {
+    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException, UnknownHostException {
 
         // 유저 정보 받아오기
         checkInvalidToken(request);
@@ -121,8 +124,25 @@ public class SurveyService {
         userSurvey.setDocument(surveyDocument);
         surveyRepository.flush();
 
+//        // 스냅샷 이미지 저장하기
+//        // 172.16.210.25 : Image DB VM 접속하기
+//        InetAddress imageVM = Inet4Address.getByAddress(new byte[]{(byte) 172, 16, (byte) 210, 25});
+//
+//        // 스냅샷 찍기
+//        GrapzIt
     }
 
+    public void captureSnapshot() {
+
+    }
+
+    // gird method 로 SurveyDocument 조회
+    public List<SurveyDocument> readSurveyListByGrid(HttpServletRequest request, PageRequestDto pageRequest) {
+
+        return surveyRepository.getSurveyDocumentListGrid(request, pageRequest);
+    }
+
+    // list method 로 SurveyDocument 조회
     public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequestDto pageRequest) throws Exception {
 
         checkInvalidToken(request);

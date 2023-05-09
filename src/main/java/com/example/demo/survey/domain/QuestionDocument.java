@@ -22,7 +22,7 @@ public class QuestionDocument {
     @Column(name = "question_type")
     private int questionType;
 
-    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JsonIgnore //순환참조 방지
     @Column(name = "choice_list")
     private List<Choice> choiceList;

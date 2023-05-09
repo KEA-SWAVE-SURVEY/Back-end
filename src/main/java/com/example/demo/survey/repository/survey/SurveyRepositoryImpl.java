@@ -4,11 +4,14 @@ import com.example.demo.survey.domain.QSurvey;
 import com.example.demo.survey.domain.QSurveyDocument;
 import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
+import com.example.demo.survey.request.PageRequestDto;
 import com.example.demo.user.domain.QUser;
 import com.example.demo.user.domain.User;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,8 +50,9 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
     }
 
     // survey Document 를 gird 형식으로 조회할 때 페이징 처리 없이 모두 다 조회
-    public List<SurveyDocument> getSurveyDocumentListGrid() {
-
+    public List<SurveyDocument> getSurveyDocumentListGrid(HttpServletRequest request, PageRequestDto pageRequest) {
+        String sort1 = pageRequest.getSort1();
+        String sort2 = pageRequest.getSort2();
         return null;
     }
 
