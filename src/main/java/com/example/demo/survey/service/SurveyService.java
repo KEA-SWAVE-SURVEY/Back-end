@@ -1,5 +1,6 @@
 package com.example.demo.survey.service;
 
+import com.example.demo.survey.exception.InvalidProcessException;
 import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
@@ -333,7 +334,7 @@ public class SurveyService {
             // python 파일 오류
             throw new InvalidPythonException(e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new InvalidProcessException(e);
         }
     }
 
@@ -395,11 +396,7 @@ public class SurveyService {
         } else {
             throw new InvalidSurveyException();
         }
-
-<<<<<<< Updated upstream
-=======
 //        checkInvalidToken(request);
->>>>>>> Stashed changes
     }
 
     // 분석 상세 분석 Get
