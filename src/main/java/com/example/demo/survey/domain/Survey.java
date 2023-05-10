@@ -28,7 +28,7 @@ public class Survey {
     @JoinColumn(name = "user_Id")
     private User user;
 
-    @OneToMany(mappedBy = "survey", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "survey", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore //순환참조 방지
     @Column(name = "survey_documentList")
     private List<SurveyDocument> surveyDocumentList;
