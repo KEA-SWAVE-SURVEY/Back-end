@@ -35,7 +35,7 @@ public class SurveyDocument {
     @Column(name = "url")
     private String url;
 
-    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore //순환참조 방지
     @Column(name = "content")
     private List<QuestionDocument> questionDocumentList;

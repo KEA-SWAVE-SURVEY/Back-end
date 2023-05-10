@@ -25,14 +25,14 @@ public class PageRequest {
         this.direction = getDirection(direct);
     }
 
-    public void setPage(int page) {
-        this.page = page <= 0 ? 1 : page;
+    public int setPage(int page) {
+        return this.page = page <= 0 ? 1 : page;
     }
 
-    public void setSize(int size) {
+    public int setSize(int size) {
         int DEFAULT_SIZE = 5;
         int MAX_SIZE = 50;
-        this.size = size > MAX_SIZE ? DEFAULT_SIZE : size;
+        return this.size = size > MAX_SIZE ? DEFAULT_SIZE : size;
     }
 
     public void setDirection(Direction direction) {
