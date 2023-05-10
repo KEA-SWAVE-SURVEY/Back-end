@@ -31,10 +31,13 @@ public class SurveyController {
         return "Success";
     }
 
+    // grid 로 조회
     @PostMapping(value = "/api/survey-list-grid")
     public List<SurveyDocument> readListGrid(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) throws Exception {
         return surveyService.readSurveyListByGrid(request, pageRequest);
     }
+
+    // list 로 조회
     @PostMapping(value = "/api/survey-list")
     public Page<SurveyDocument> readList(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) throws Exception {
         return surveyService.readSurveyList(request, pageRequest);

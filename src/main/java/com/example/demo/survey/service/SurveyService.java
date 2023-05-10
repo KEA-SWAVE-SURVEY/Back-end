@@ -139,7 +139,9 @@ public class SurveyService {
     // gird method 로 SurveyDocument 조회
     public List<SurveyDocument> readSurveyListByGrid(HttpServletRequest request, PageRequestDto pageRequest) {
 
-        return surveyRepository.getSurveyDocumentListGrid(request, pageRequest);
+        User user = userService.getUser(request);
+
+        return surveyRepository.getSurveyDocumentListGrid(user, pageRequest);
     }
 
     // list method 로 SurveyDocument 조회

@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +32,15 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
     public Page<SurveyDocument> surveyDocumentPaging(User userRequest, Pageable pageable) {
         List<SurveyDocument> results = getSurveyDocumentList(userRequest, pageable);
 
-        return new PageImpl<>(results, pageable, results.size());
+        QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
+
+        Long count = jpaQueryFactory
+                .select(surveyDocument.count())
+                .from(surveyDocument)
+                .where(surveyDocument.survey.user.eq(userRequest))
+                .fetchOne();
+
+        return new PageImpl<>(results, pageable, count);
     }
 
     public List<SurveyDocument> getSurveyDocumentList(User userRequest, Pageable pageable) {
@@ -48,21 +57,21 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
                 .limit(pageable.getPageSize())
                 .fetch();
 
-//        List<SurveyDocument> results = jpaQueryFactory
-//                .selectFrom(surveyDocument)
-//                .leftJoin(surveyDocument.survey).on(survey.user.eq(userRequest))
-//                .orderBy(SurveyDocumentSort(pageable))
-//                .offset(pageable.getOffset())
-//                .limit(pageable.getPageSize())
-//                .fetch();
         return result;
     }
 
     // survey Document 를 gird 형식으로 조회할 때 페이징 처리 없이 모두 다 조회
-    public List<SurveyDocument> getSurveyDocumentListGrid(HttpServletRequest request, PageRequestDto pageRequest) {
+    public List<SurveyDocument> getSurveyDocumentListGrid(User user, PageRequestDto pageRequest) {
+        QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
+
         String sort1 = pageRequest.getSort1(); // date or title
         String sort2 = pageRequest.getSort2(); // ascending or descending
-        return null;
+        return jpaQueryFactory
+                .select(surveyDocument)
+                .from(surveyDocument)
+                .where(surveyDocument.survey.user.eq(user))
+                .orderBy(SurveyDocumentSort(sort1, sort2))
+                .fetch();
     }
 
     // survey document 상세 조회
@@ -82,6 +91,19 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
     }
 
     // 특정 기준(날짜 or 오름차순)에 따라 정렬
+    private OrderSpecifier<?> SurveyDocumentSort(String sort1, String sort2) {
+        QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
+
+        Order direction;
+        // Ascending or Descending
+        if(sort2.equals("ascending")) {
+            direction = Order.ASC;
+        }
+        else {
+            direction = Order.DESC;
+        }
+    }
+
     private OrderSpecifier<?> SurveyDocumentSort(Pageable page) {
         QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
         if (!page.getSort().isEmpty()) {
@@ -97,7 +119,6 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
                     case "title":
                         log.info("제목 순으로 정렬");
                         return new OrderSpecifier(direction, surveyDocument.title);
-
                 }
             }
         }

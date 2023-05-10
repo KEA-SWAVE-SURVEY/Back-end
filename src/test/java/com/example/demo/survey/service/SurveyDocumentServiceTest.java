@@ -246,8 +246,8 @@ public class SurveyDocumentServiceTest {
         PageRequestDto pageRequestDto = new PageRequestDto("list", 1, "title", "ascending");
         Page<SurveyDocument> pageImpl = surveyService.readSurveyList(servletRequest, pageRequestDto);
 
-
         // then
+        System.out.println(pageImpl.getNumberOfElements());
         assertEquals(5, pageImpl.getContent().size());
         assertEquals(1, pageImpl.getTotalPages());
         assertEquals(0, pageImpl.getNumber());

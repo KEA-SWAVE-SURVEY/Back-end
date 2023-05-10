@@ -14,6 +14,6 @@ public interface SurveyRepositoryCustom {
     Page<SurveyDocument> surveyDocumentPaging(User user,Pageable pageable);
     SurveyDocument surveyDocumentDetail(User userRequest, SurveyDocument surveyDocumentRequest);
 
-    List<SurveyDocument> getSurveyDocumentListGrid(HttpServletRequest request, PageRequestDto pageRequest);
+    List<SurveyDocument> getSurveyDocumentListGrid(User user, PageRequestDto pageRequest);
 
 }
