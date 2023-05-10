@@ -95,35 +95,47 @@ public class SurveyRepositoryImpl implements SurveyRepositoryCustom{
         QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
 
         Order direction;
+        OrderSpecifier orderDirection;
         // Ascending or Descending
         if(sort2.equals("ascending")) {
             direction = Order.ASC;
+            orderDirection = getOrderSpecifier(surveyDocument, sort1, direction);
         }
         else {
             direction = Order.DESC;
+            orderDirection = getOrderSpecifier(surveyDocument, sort1, direction);
         }
+        return orderDirection;
     }
 
     private OrderSpecifier<?> SurveyDocumentSort(Pageable page) {
         QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
+
+        OrderSpecifier orderDirection = null;
         if (!page.getSort().isEmpty()) {
             //정렬값이 들어 있으면 for 사용하여 값을 가져온다
             for (Sort.Order order : page.getSort()) {
                 // 서비스에서 넣어준 DESC or ASC 를 가져온다.
                 Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
                 // 서비스에서 넣어준 정렬 조건을 스위치 케이스 문을 활용하여 셋팅하여 준다.
-                switch (order.getProperty()){
-                    case "date" :
-                        log.info("날짜 순으로 정렬");
-                        return new OrderSpecifier(direction, surveyDocument.startDate);
-                    case "title":
-                        log.info("제목 순으로 정렬");
-                        return new OrderSpecifier(direction, surveyDocument.title);
-                }
+                orderDirection = getOrderSpecifier(surveyDocument, order.getProperty(), direction);
             }
+        }
+        return orderDirection;
+    }
+
+    private static OrderSpecifier getOrderSpecifier(QSurveyDocument surveyDocument, String property, Order direction) {
+        switch (property){
+            case "date" :
+                log.info("날짜 순으로 정렬");
+                return new OrderSpecifier(direction, surveyDocument.startDate);
+            case "title":
+                log.info("제목 순으로 정렬");
+                return new OrderSpecifier(direction, surveyDocument.title);
         }
         return null;
     }
+
 
     public List<SurveyDocument> findBySurveyList(User userRequest){
         QSurveyDocument surveyDocument = QSurveyDocument.surveyDocument;
