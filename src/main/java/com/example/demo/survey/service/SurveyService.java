@@ -335,7 +335,7 @@ public class SurveyService {
 
     // 분석 관리 Get
     public SurveyManageDto readSurveyMange(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
-        checkInvalidToken(request);
+//        checkInvalidToken(request);
 
         //Survey_Id를 가져와서 그 Survey 의 Document 를 가져옴
         Optional<SurveyDocument> findSurvey = surveyDocumentRepository.findById(surveyId);
@@ -358,6 +358,7 @@ public class SurveyService {
 
     // 분석 관리 Post
     public void setSurveyMange(HttpServletRequest request, Long surveyId, SurveyManageDto manage) throws InvalidTokenException {
+//        checkInvalidToken(request);
         Optional<SurveyDocument> optionalSurvey = surveyDocumentRepository.findById(surveyId);
 
         if (optionalSurvey.isPresent()) {
@@ -373,7 +374,10 @@ public class SurveyService {
             throw new InvalidSurveyException();
         }
 
-        checkInvalidToken(request);
+<<<<<<< Updated upstream
+=======
+//        checkInvalidToken(request);
+>>>>>>> Stashed changes
     }
 
     // 분석 상세 분석 Get
