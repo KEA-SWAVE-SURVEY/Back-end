@@ -28,6 +28,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -243,7 +247,16 @@ public class SurveyService {
             ProcessBuilder builder;
             BufferedReader br;
 
-            builder = new ProcessBuilder("python", "./src/main/resources/python/python2.py", String.valueOf(surveyDocumentId));
+            Resource[] resources = ResourcePatternUtils
+                    .getResourcePatternResolver(new DefaultResourceLoader())
+                    .getResources("classpath*:python/python2.py");
+
+            log.info(String.valueOf(resources[0]));
+            int length = String.valueOf(resources[0]).length();
+            String substring = String.valueOf(resources[0]).substring(6, length-1);
+            log.info(substring);
+
+            builder = new ProcessBuilder("python", substring, String.valueOf(surveyDocumentId));
 
             builder.redirectErrorStream(true);
             Process process = builder.start();
