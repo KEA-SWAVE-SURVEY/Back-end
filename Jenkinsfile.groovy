@@ -7,7 +7,7 @@ pipeline {
     stages() {
         stage('git clone') {
             steps() {
-                git branch: 'main', credentialsId: 'git-kjk7212', url: 'https://github.com/KEA-SWAVE-SURVEY/Back-end/'
+                git branch: 'master', credentialsId: 'git-kjk7212', url: 'https://github.com/KEA-SWAVE-SURVEY/Back-end/'
             }
         }
         
