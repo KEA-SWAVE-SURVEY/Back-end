@@ -224,7 +224,7 @@ public class SurveyService {
             questionAnswerRepository.save(questionAnswer);
             // if 찬부식 or 객관식
             // if 주관식 -> checkId에 주관식인 questionId가 들어감
-            if(questionResponseDto.getType()!=1){
+            if(questionResponseDto.getType()!=0){
                 //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
                 if (questionAnswer.getCheckAnswerId() != null) {
                     Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
