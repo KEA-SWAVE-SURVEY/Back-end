@@ -49,6 +49,11 @@ public class SurveyDocument {
     @JoinColumn(name = "survey_id")
     private Survey survey;
 
+    @OneToMany(mappedBy = "surveyDocument", fetch = FetchType.LAZY)
+    @JsonIgnore //순환참조 방지
+    @Column(name = "survey_answerList")
+    private List<SurveyAnswer> surveyAnswerList;
+
     @Builder
     public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, SurveyAnalyze surveyAnalyze) {
         this.survey = survey;
@@ -59,6 +64,9 @@ public class SurveyDocument {
         this.surveyAnalyze = surveyAnalyze;
     }
 
+    public void setAnswer(SurveyAnswer surveyAnswer) {
+        this.surveyAnswerList.add(surveyAnswer);
+    }
     // 문항 list 에 넣어주기
     public void setQuestion(QuestionDocument questionDocument) {
         this.questionDocumentList.add(questionDocument);
