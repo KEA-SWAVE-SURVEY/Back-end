@@ -79,7 +79,6 @@ public class SurveyService {
             userSurvey = Survey.builder()
                     .user(userService.getUser(request))
                     .surveyDocumentList(new ArrayList<>())
-                    .surveyAnswerList(new ArrayList<>())
                     .build();
             surveyRepository.save(userSurvey);
         }
@@ -91,6 +90,7 @@ public class SurveyService {
                 .description(surveyRequest.getDescription())
                 .type(surveyRequest.getType())
                 .questionDocumentList(new ArrayList<>())
+                .surveyAnswerList(new ArrayList<>())
                 .build();
         surveyDocumentRepository.save(surveyDocument);
 
@@ -219,6 +219,7 @@ public class SurveyService {
                     .questionType(questionResponseDto.getType())
                     .checkAnswer(questionResponseDto.getAnswer())
                     .checkAnswerId(questionResponseDto.getAnswerId())
+                    .surveyDocumentId(surveyDocumentId)
                     .build();
             questionAnswerRepository.save(questionAnswer);
             // if 찬부식 or 객관식
@@ -434,8 +435,8 @@ public class SurveyService {
     }
 
     // SurveyDocument Response 보낼 SurveyDetailDto로 변환하는 메서드
-    private SurveyDetailDto getSurveyDetailDto(Long surveyId) {
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyId).get();
+    private SurveyDetailDto getSurveyDetailDto(Long surveyDocumentId) {
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
         SurveyDetailDto surveyDetailDto = new SurveyDetailDto();
 
         // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
@@ -450,14 +451,29 @@ public class SurveyService {
             questionDto.setTitle(questionDocument.getTitle());
             questionDto.setQuestionType(questionDocument.getQuestionType());
 
+            // question type에 따라 choice 에 들어갈 내용 구분
+            // 주관식이면 choice title에 주관식 응답을 저장??
+            // 객관식 찬부식 -> 기존 방식 과 똑같이 count를 올려서 저장
             List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
-            for (Choice choice : questionDocument.getChoiceList()) {
-                ChoiceDetailDto choiceDto = new ChoiceDetailDto();
-                choiceDto.setId(choice.getId());
-                choiceDto.setTitle(choice.getTitle());
-                choiceDto.setCount(choice.getCount());
+            if (questionDocument.getQuestionType() == 0) {
+                List<QuestionAnswer> questionAnswersBySurveyDocumentId = questionAnswerRepository.findQuestionAnswersBySurveyDocumentId(surveyDocumentId);
+                for (QuestionAnswer questionAnswer : questionAnswersBySurveyDocumentId) {
+                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                    choiceDto.setId(questionAnswer.getId());
+                    choiceDto.setTitle(questionAnswer.getCheckAnswer());
+                    choiceDto.setCount(0);
 
-                choiceDtos.add(choiceDto);
+                    choiceDtos.add(choiceDto);
+                }
+            } else {
+                for (Choice choice : questionDocument.getChoiceList()) {
+                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                    choiceDto.setId(choice.getId());
+                    choiceDto.setTitle(choice.getTitle());
+                    choiceDto.setCount(choice.getCount());
+
+                    choiceDtos.add(choiceDto);
+                }
             }
             questionDto.setChoiceList(choiceDtos);
 
