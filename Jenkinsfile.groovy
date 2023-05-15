@@ -35,7 +35,7 @@ pipeline {
                 sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker rm back'"
                 sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker rmi kjk7212/back'"
                 sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker pull kjk7212/back'"
-                sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker run --name back -d -p 8080:8080 kjk7212/back'"
+                sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker run --name back -d -p 80:8080 kjk7212/back'"
                 }
             }
         }
