@@ -22,9 +22,6 @@ public class QuestionAnswer {
     @Column(name = "check_answer_id")
     private Long checkAnswerId;
 
-    @Column(name = "survey_document_id")
-    private Long surveyDocumentId;
-
     @ManyToOne
     @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "survey_answer_id")
@@ -32,12 +29,11 @@ public class QuestionAnswer {
 
     // 생성자 오버로딩
     @Builder
-    public QuestionAnswer(Long surveyDocumentId, String title, SurveyAnswer surveyAnswerId, int questionType, String checkAnswer, Long checkAnswerId) {
+    public QuestionAnswer(String title, SurveyAnswer surveyAnswerId, int questionType, String checkAnswer, Long checkAnswerId) {
         this.title = title;
         this.questionType = questionType;
         this.surveyAnswerId = surveyAnswerId;
         this.checkAnswer = checkAnswer;
         this.checkAnswerId = checkAnswerId;
-        this.surveyDocumentId = surveyDocumentId;
     }
 }

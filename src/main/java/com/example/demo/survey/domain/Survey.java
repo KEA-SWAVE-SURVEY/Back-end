@@ -39,8 +39,9 @@ public class Survey {
     }
 
     @Builder
-    public Survey(User user, List<SurveyDocument> surveyDocumentList) {
+    public Survey(User user, List<SurveyDocument> surveyDocumentList, List<SurveyAnswer> surveyAnswerList) {
         this.user = user;
         this.surveyDocumentList = surveyDocumentList;
+        this.surveyAnswerList = surveyAnswerList;
     }
 }
