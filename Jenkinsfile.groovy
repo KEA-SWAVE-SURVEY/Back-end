@@ -22,7 +22,7 @@ pipeline {
             steps {
                 script{
                     image = docker.build("kjk7212/back")
-                    docker.withRegistry('kjk7212/back', 'docker-hub-credentials') {
+                    docker.withRegistry('https://registry.hub.docker.com/repository/docker/kjk7212/back', 'docker-hub-credentials') {
                         image.push()
                     }
                 }
