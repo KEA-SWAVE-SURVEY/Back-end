@@ -55,13 +55,14 @@ public class SurveyDocument {
     private List<SurveyAnswer> surveyAnswerList;
 
     @Builder
-    public SurveyDocument(Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, SurveyAnalyze surveyAnalyze) {
+    public SurveyDocument(List<SurveyAnswer> surveyAnswerList, Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, SurveyAnalyze surveyAnalyze) {
         this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;
         this.questionDocumentList = questionDocumentList;
         this.surveyAnalyze = surveyAnalyze;
+        this.surveyAnswerList = surveyAnswerList;
     }
 
     public void setAnswer(SurveyAnswer surveyAnswer) {
