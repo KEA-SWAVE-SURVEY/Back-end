@@ -192,18 +192,20 @@ public class SurveyService {
         return getSurveyDetailDto(id);
     }
 
-    // todo: SurveyDocument로 매핑 관계 변경
     // 설문 응답 저장
     public void createSurveyAnswer(Long surveyDocumentId, SurveyResponseDto surveyResponse){
         // SurveyDocumentId를 통해 어떤 설문인지 가져옴
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
+        Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
+        // surveyDocument 의 Survey 가져옴
+        Survey survey = surveyDocument.get().getSurvey();
 
         // Survey Response 를 Survey Answer 에 저장하기
         SurveyAnswer surveyAnswer = SurveyAnswer.builder()
-                .surveyDocument(surveyDocument)
+                .survey(survey)
                 .title(surveyResponse.getTitle())
                 .description(surveyResponse.getDescription())
                 .type(surveyResponse.getType())
+                .surveyDocumentId(surveyDocumentId)
                 .questionAnswerList(new ArrayList<>())
                 .build();
         surveyAnswerRepository.save(surveyAnswer);
@@ -212,7 +214,6 @@ public class SurveyService {
         surveyAnswerRepository.findById(surveyAnswer.getId());
         for (QuestionResponseDto questionResponseDto : surveyResponse.getQuestionResponse()) {
             // Question Answer 에 저장
-            // todo: 주관식0 / 찬부식1, 객관식2 구분 저장
             QuestionAnswer questionAnswer = QuestionAnswer.builder()
                     .surveyAnswerId(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
                     .title(questionResponseDto.getTitle())
@@ -221,26 +222,22 @@ public class SurveyService {
                     .checkAnswerId(questionResponseDto.getAnswerId())
                     .build();
             questionAnswerRepository.save(questionAnswer);
-            // if 찬부식 or 객관식
-            // if 주관식 -> checkId에 주관식인 questionId가 들어감
-            if(questionResponseDto.getType()!=1){
-                //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
-                if (questionAnswer.getCheckAnswerId() != null) {
-                    Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
-    //                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
+            //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
+            if (questionAnswer.getCheckAnswerId() != null) {
+                Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
+//                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
 
-                    if (findChoice.isPresent()) {
-                        findChoice.get().setCount(findChoice.get().getCount() + 1);
-                        choiceRepository.save(findChoice.get());
-                    }
+                if (findChoice.isPresent()) {
+                    findChoice.get().setCount(findChoice.get().getCount() + 1);
+                    choiceRepository.save(findChoice.get());
                 }
             }
             surveyAnswer.setQuestion(questionAnswer);
         }
         surveyAnswerRepository.flush();
         // 저장된 설문 응답을 Survey 에 연결 및 저장
-        surveyDocument.setAnswer(surveyAnswer);
-        surveyDocumentRepository.flush();
+        survey.setAnswer(surveyAnswer);
+        surveyRepository.flush();
     }
 
     // 파이썬으로 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
