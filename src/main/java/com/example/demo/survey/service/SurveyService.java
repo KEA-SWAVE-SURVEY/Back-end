@@ -250,15 +250,13 @@ public class SurveyService {
             System.out.println("pythonbuilder ");
             String arg1;
             ProcessBuilder builder;
-            BufferedReader br;
 
             Resource[] resources = ResourcePatternUtils
                     .getResourcePatternResolver(new DefaultResourceLoader())
                     .getResources("classpath*:python/python2.py");
 
             log.info(String.valueOf(resources[0]));
-            int length = String.valueOf(resources[0]).length();
-            String substring = String.valueOf(resources[0]).substring(6, length-1);
+            String substring = String.valueOf(resources[0]).substring(6, String.valueOf(resources[0]).length() -1);
             log.info(substring);
 
             builder = new ProcessBuilder("python", substring, String.valueOf(surveyDocumentId));
@@ -267,37 +265,37 @@ public class SurveyService {
             Process process = builder.start();
 
             // 자식 프로세스가 종료될 때까지 기다림
-            process.waitFor();
+            int exitCode;
+            try {
+                exitCode = process.waitFor();
+            } catch (InterruptedException e) {
+                // Handle interrupted exception
+                exitCode = -1;
+            }
+
+            if (exitCode != 0) {
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String errorLine;
+                System.out.println("Error output:");
+                while ((errorLine = errorReader.readLine()) != null) {
+                    System.out.println(errorLine);
+                }
+            }
+
+            System.out.println("Process exited with code " + exitCode);
 
             //// 서브 프로세스가 출력하는 내용을 받기 위해
-            br = new BufferedReader(new InputStreamReader(process.getInputStream(),"UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line = br.readLine();
 
-            /**
-             [1(남성의choiceId),
-              [
-                [0.88,3(짜장의ChoiceId)],
-                [0.80,5(싫음의ChoiceId)]
-              ]
-             ]
-             **/
-
             String inputString = line.replaceAll("'", "");
-            log.info("result python: ", inputString);
+            log.info("result python: ");
+            log.info(inputString);
+
 
             ObjectMapper objectMapper = new ObjectMapper();
             List<Object> List = objectMapper.readValue(inputString, List.class);
-            /**
-             * dataList
-             * [1
-             *   [
-             *     [0.88, 2],
-             *     [0.8, 3],
-             *     ...
-             *   ]
-             * ]
-             */
 
             // 값 분리해서 Analyze DB에 저장
             SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyDocumentId);
@@ -350,8 +348,6 @@ public class SurveyService {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
             // python 파일 오류
             throw new InvalidPythonException(e);
-        } catch (InterruptedException e) {
-            throw new InvalidProcessException(e);
         }
     }
 
@@ -456,14 +452,16 @@ public class SurveyService {
             // 객관식 찬부식 -> 기존 방식 과 똑같이 count를 올려서 저장
             List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
             if (questionDocument.getQuestionType() == 0) {
-                List<QuestionAnswer> questionAnswersBySurveyDocumentId = questionAnswerRepository.findQuestionAnswersBySurveyDocumentId(surveyDocumentId);
-                for (QuestionAnswer questionAnswer : questionAnswersBySurveyDocumentId) {
-                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
-                    choiceDto.setId(questionAnswer.getId());
-                    choiceDto.setTitle(questionAnswer.getCheckAnswer());
-                    choiceDto.setCount(0);
+                List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
+                for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
+                    if (questionAnswer.getQuestionType() == 0) {
+                        ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                        choiceDto.setId(questionAnswer.getId());
+                        choiceDto.setTitle(questionAnswer.getCheckAnswer());
+                        choiceDto.setCount(0);
 
-                    choiceDtos.add(choiceDto);
+                        choiceDtos.add(choiceDto);
+                    }
                 }
             } else {
                 for (Choice choice : questionDocument.getChoiceList()) {
@@ -481,6 +479,7 @@ public class SurveyService {
         }
         surveyDetailDto.setQuestionList(questionDtos);
 
+        log.info(String.valueOf(surveyDetailDto));
         return surveyDetailDto;
     }
 

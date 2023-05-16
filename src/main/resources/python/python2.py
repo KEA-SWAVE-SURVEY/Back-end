@@ -50,7 +50,8 @@ def analyze_for_all(survey_document_id):
 
     # print(resultSources)
     for i in temp:
-        rdb = f'SELECT check_answer_id FROM QUESTION_ANSWER where survey_answer_id={i}'
+        # 주관식은 skip // choice type 으로 거르기
+        rdb = f'SELECT check_answer_id FROM QUESTION_ANSWER WHERE survey_answer_id={i} AND question_type <> 0'
         sourceCursor.execute(rdb)
         resultSources = sourceCursor.fetchall()
 
