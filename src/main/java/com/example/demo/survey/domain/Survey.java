@@ -33,23 +33,14 @@ public class Survey {
     @Column(name = "survey_documentList")
     private List<SurveyDocument> surveyDocumentList;
 
-    @OneToMany(mappedBy = "survey", fetch = FetchType.LAZY)
-    @JsonIgnore //순환참조 방지
-    @Column(name = "survey_answerList")
-    private List<SurveyAnswer> surveyAnswerList;
-
     // List 에 survey Document & answer 를 저장할 method
     public void setDocument(SurveyDocument surveyDocument) {
         this.surveyDocumentList.add(surveyDocument);
     }
-    public void setAnswer(SurveyAnswer surveyAnswer) {
-        this.surveyAnswerList.add(surveyAnswer);
-    }
 
     @Builder
-    public Survey(User user, List<SurveyDocument> surveyDocumentList, List<SurveyAnswer> surveyAnswerList) {
+    public Survey(User user, List<SurveyDocument> surveyDocumentList) {
         this.user = user;
         this.surveyDocumentList = surveyDocumentList;
-        this.surveyAnswerList = surveyAnswerList;
     }
 }

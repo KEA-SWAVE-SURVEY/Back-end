@@ -1,5 +1,6 @@
 package com.example.demo.survey.service;
 
+import com.example.demo.survey.exception.InvalidProcessException;
 import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
@@ -78,7 +79,6 @@ public class SurveyService {
             userSurvey = Survey.builder()
                     .user(userService.getUser(request))
                     .surveyDocumentList(new ArrayList<>())
-                    .surveyAnswerList(new ArrayList<>())
                     .build();
             surveyRepository.save(userSurvey);
         }
@@ -90,6 +90,7 @@ public class SurveyService {
                 .description(surveyRequest.getDescription())
                 .type(surveyRequest.getType())
                 .questionDocumentList(new ArrayList<>())
+                .surveyAnswerList(new ArrayList<>())
                 .build();
         surveyDocumentRepository.save(surveyDocument);
 
@@ -191,20 +192,18 @@ public class SurveyService {
         return getSurveyDetailDto(id);
     }
 
+    // todo: SurveyDocument로 매핑 관계 변경
     // 설문 응답 저장
     public void createSurveyAnswer(Long surveyDocumentId, SurveyResponseDto surveyResponse){
         // SurveyDocumentId를 통해 어떤 설문인지 가져옴
-        Optional<SurveyDocument> surveyDocument = surveyDocumentRepository.findById(surveyDocumentId);
-        // surveyDocument 의 Survey 가져옴
-        Survey survey = surveyDocument.get().getSurvey();
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
 
         // Survey Response 를 Survey Answer 에 저장하기
         SurveyAnswer surveyAnswer = SurveyAnswer.builder()
-                .survey(survey)
+                .surveyDocument(surveyDocument)
                 .title(surveyResponse.getTitle())
                 .description(surveyResponse.getDescription())
                 .type(surveyResponse.getType())
-                .surveyDocumentId(surveyDocumentId)
                 .questionAnswerList(new ArrayList<>())
                 .build();
         surveyAnswerRepository.save(surveyAnswer);
@@ -213,30 +212,36 @@ public class SurveyService {
         surveyAnswerRepository.findById(surveyAnswer.getId());
         for (QuestionResponseDto questionResponseDto : surveyResponse.getQuestionResponse()) {
             // Question Answer 에 저장
+            // todo: 주관식0 / 찬부식1, 객관식2 구분 저장
             QuestionAnswer questionAnswer = QuestionAnswer.builder()
                     .surveyAnswerId(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
                     .title(questionResponseDto.getTitle())
                     .questionType(questionResponseDto.getType())
                     .checkAnswer(questionResponseDto.getAnswer())
                     .checkAnswerId(questionResponseDto.getAnswerId())
+                    .surveyDocumentId(surveyDocumentId)
                     .build();
             questionAnswerRepository.save(questionAnswer);
-            //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
-            if (questionAnswer.getCheckAnswerId() != null) {
-                Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
-//                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
+            // if 찬부식 or 객관식
+            // if 주관식 -> checkId에 주관식인 questionId가 들어감
+            if(questionResponseDto.getType()!=0){
+                //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
+                if (questionAnswer.getCheckAnswerId() != null) {
+                    Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
+    //                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
 
-                if (findChoice.isPresent()) {
-                    findChoice.get().setCount(findChoice.get().getCount() + 1);
-                    choiceRepository.save(findChoice.get());
+                    if (findChoice.isPresent()) {
+                        findChoice.get().setCount(findChoice.get().getCount() + 1);
+                        choiceRepository.save(findChoice.get());
+                    }
                 }
             }
             surveyAnswer.setQuestion(questionAnswer);
         }
         surveyAnswerRepository.flush();
         // 저장된 설문 응답을 Survey 에 연결 및 저장
-        survey.setAnswer(surveyAnswer);
-        surveyRepository.flush();
+        surveyDocument.setAnswer(surveyAnswer);
+        surveyDocumentRepository.flush();
     }
 
     // 파이썬으로 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
@@ -346,7 +351,7 @@ public class SurveyService {
             // python 파일 오류
             throw new InvalidPythonException(e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new InvalidProcessException(e);
         }
     }
 
@@ -370,7 +375,7 @@ public class SurveyService {
 
     // 분석 관리 Get
     public SurveyManageDto readSurveyMange(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
-        checkInvalidToken(request);
+//        checkInvalidToken(request);
 
         //Survey_Id를 가져와서 그 Survey 의 Document 를 가져옴
         Optional<SurveyDocument> findSurvey = surveyDocumentRepository.findById(surveyId);
@@ -393,6 +398,7 @@ public class SurveyService {
 
     // 분석 관리 Post
     public void setSurveyMange(HttpServletRequest request, Long surveyId, SurveyManageDto manage) throws InvalidTokenException {
+//        checkInvalidToken(request);
         Optional<SurveyDocument> optionalSurvey = surveyDocumentRepository.findById(surveyId);
 
         if (optionalSurvey.isPresent()) {
@@ -407,8 +413,7 @@ public class SurveyService {
         } else {
             throw new InvalidSurveyException();
         }
-
-        checkInvalidToken(request);
+//        checkInvalidToken(request);
     }
 
     // 분석 상세 분석 Get
@@ -430,8 +435,8 @@ public class SurveyService {
     }
 
     // SurveyDocument Response 보낼 SurveyDetailDto로 변환하는 메서드
-    private SurveyDetailDto getSurveyDetailDto(Long surveyId) {
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyId).get();
+    private SurveyDetailDto getSurveyDetailDto(Long surveyDocumentId) {
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
         SurveyDetailDto surveyDetailDto = new SurveyDetailDto();
 
         // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
@@ -446,14 +451,29 @@ public class SurveyService {
             questionDto.setTitle(questionDocument.getTitle());
             questionDto.setQuestionType(questionDocument.getQuestionType());
 
+            // question type에 따라 choice 에 들어갈 내용 구분
+            // 주관식이면 choice title에 주관식 응답을 저장??
+            // 객관식 찬부식 -> 기존 방식 과 똑같이 count를 올려서 저장
             List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
-            for (Choice choice : questionDocument.getChoiceList()) {
-                ChoiceDetailDto choiceDto = new ChoiceDetailDto();
-                choiceDto.setId(choice.getId());
-                choiceDto.setTitle(choice.getTitle());
-                choiceDto.setCount(choice.getCount());
+            if (questionDocument.getQuestionType() == 0) {
+                List<QuestionAnswer> questionAnswersBySurveyDocumentId = questionAnswerRepository.findQuestionAnswersBySurveyDocumentId(surveyDocumentId);
+                for (QuestionAnswer questionAnswer : questionAnswersBySurveyDocumentId) {
+                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                    choiceDto.setId(questionAnswer.getId());
+                    choiceDto.setTitle(questionAnswer.getCheckAnswer());
+                    choiceDto.setCount(0);
 
-                choiceDtos.add(choiceDto);
+                    choiceDtos.add(choiceDto);
+                }
+            } else {
+                for (Choice choice : questionDocument.getChoiceList()) {
+                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                    choiceDto.setId(choice.getId());
+                    choiceDto.setTitle(choice.getTitle());
+                    choiceDto.setCount(choice.getCount());
+
+                    choiceDtos.add(choiceDto);
+                }
             }
             questionDto.setChoiceList(choiceDtos);
 
