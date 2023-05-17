@@ -30,6 +30,8 @@ public class User {
 
     private String userRole;
 
+    private String Description;
+
     @OneToOne(mappedBy = "user")
     @JsonIgnore
     private Survey survey;
