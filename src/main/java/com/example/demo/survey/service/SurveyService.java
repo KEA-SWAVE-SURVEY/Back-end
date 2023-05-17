@@ -231,6 +231,7 @@ public class SurveyService {
     //                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
 
                     if (findChoice.isPresent()) {
+                        //todo: querydsl로 변경
                         findChoice.get().setCount(findChoice.get().getCount() + 1);
                         choiceRepository.save(findChoice.get());
                     }
@@ -364,8 +365,6 @@ public class SurveyService {
     // 분석 응답 (문항 별 응답 수 불러오기) (Count)
     public SurveyDetailDto readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
 //        checkInvalidToken(request);
-
-        //
         return getSurveyDetailDto(surveyId);
     }
 
