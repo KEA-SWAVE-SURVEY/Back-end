@@ -59,7 +59,11 @@ public class SecurityConfig{
                 .exceptionHandling()
                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint());
 
+
+
+
         http.addFilterBefore(new JwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 }
