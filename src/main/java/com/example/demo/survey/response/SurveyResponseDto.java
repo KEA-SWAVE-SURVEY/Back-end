@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class SurveyResponseDto {
+    Long id;
     String title;
     String description;
     int type;

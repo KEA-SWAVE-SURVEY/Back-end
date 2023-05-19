@@ -49,28 +49,28 @@ public class SurveyController {
     }
 
     // 설문 참여
-    @GetMapping(value = "/api/survey/load/{surveyId}")
-    public SurveyDetailDto participateSurvey(@PathVariable Long surveyId) {
+    @GetMapping(value = "/api/survey/load")
+    public SurveyDetailDto participateSurvey(@RequestBody Long surveyId) {
         return surveyService.getParticipantSurvey(surveyId);
     }
 
     // 설문 응답 저장
-    @PostMapping(value = "/api/response/create/{surveyId}")
-    public String createResponse(@RequestBody SurveyResponseDto surveyForm, @PathVariable Long surveyId) throws InvalidTokenException {
+    @PostMapping(value = "/api/response/create")
+    public String createResponse(@RequestBody SurveyResponseDto surveyForm) throws InvalidTokenException {
         // 설문 응답 저장
-        surveyService.createSurveyAnswer(surveyId, surveyForm);
+        surveyService.createSurveyAnswer(surveyForm);
         return "Success";
     }
 
     // 분석 문항
-    @GetMapping(value = "/api/research/survey/load/{surveyId}")
-    public SurveyDetailDto readSurvey(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    @GetMapping(value = "/api/research/survey/load")
+    public SurveyDetailDto readSurvey(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
         return surveyService.readSurveyDetail(request, surveyId);
     }
 
     // 설문 응답 조회
-    @GetMapping(value = "/api/response/{surveyId}")
-    public SurveyDetailDto readResponse(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    @GetMapping(value = "/api/response")
+    public SurveyDetailDto readResponse(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
         return surveyService.readCountChoice(request, surveyId);
     }
 
@@ -96,8 +96,8 @@ public class SurveyController {
     }
 
     // 설문 상세 분석 조회
-    @GetMapping(value = "/api/research/analyze/{surveyId}/")
-    public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {
+    @GetMapping(value = "/api/research/analyze")
+    public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
         return surveyService.readSurveyDetailAnalyze(request, surveyId);
     }
 }

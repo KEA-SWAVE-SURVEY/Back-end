@@ -194,7 +194,8 @@ public class SurveyService {
     }
 
     // 설문 응답 저장
-    public void createSurveyAnswer(Long surveyDocumentId, SurveyResponseDto surveyResponse){
+    public void createSurveyAnswer(SurveyResponseDto surveyResponse){
+        Long surveyDocumentId = surveyResponse.getId();
         // SurveyDocumentId를 통해 어떤 설문인지 가져옴
         SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
 
