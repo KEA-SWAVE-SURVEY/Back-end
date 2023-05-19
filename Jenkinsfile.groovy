@@ -28,7 +28,7 @@ pipeline {
                 }
             }
         }
-        stage('ws deployment') {
+        stage('was deployment') {
             steps{
                 sshagent(['WS']) {
                 sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker stop back'"
