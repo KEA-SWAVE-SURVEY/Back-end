@@ -250,7 +250,7 @@ public class SurveyService {
     }
 
     // 파이썬으로 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
-    public void giveDocumentIdtoPython(String stringId) throws InvalidPythonException {
+    public void analyzeApriori(String stringId) throws InvalidPythonException {
         long surveyDocumentId = Long.parseLong(stringId);
 
         try {
@@ -316,7 +316,6 @@ public class SurveyService {
                         .questionAnalyzeList(new ArrayList<>())
                         .build();
             }
-
             surveyAnalyzeRepository.save(surveyAnalyze);
             //for 위의 예시(남성의 갯수) 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
             //[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]
@@ -533,6 +532,7 @@ public class SurveyService {
         // Make a GET request to the API and retrieve the response
         String post = webClient.post()
                 .uri(apiUrl)
+                .header("Authorization","NouNull")
                 .bodyValue(String.valueOf(surveyDocumentId))
                 .retrieve()
                 .bodyToMono(String.class)

@@ -91,7 +91,7 @@ public class SurveyController {
     @PostMapping(value = "/api/research/analyze/create")
     public String saveAnalyze(@RequestBody String surveyId) throws InvalidTokenException {
         // 설문 분석 -> 저장 (python)
-        surveyService.giveDocumentIdtoPython(surveyId);
+        surveyService.analyzeApriori(surveyId);
         return "Success";
     }
 
