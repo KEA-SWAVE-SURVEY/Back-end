@@ -51,3 +51,6 @@ npm-debug.log*
 
 #properties
 .properties
+
+#QClass
+.generated
