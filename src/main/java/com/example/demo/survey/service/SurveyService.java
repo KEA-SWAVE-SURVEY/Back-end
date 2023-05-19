@@ -35,6 +35,7 @@ import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -192,7 +193,6 @@ public class SurveyService {
         return getSurveyDetailDto(id);
     }
 
-    // todo: SurveyDocument로 매핑 관계 변경
     // 설문 응답 저장
     public void createSurveyAnswer(Long surveyDocumentId, SurveyResponseDto surveyResponse){
         // SurveyDocumentId를 통해 어떤 설문인지 가져옴
@@ -243,12 +243,17 @@ public class SurveyService {
         // 저장된 설문 응답을 Survey 에 연결 및 저장
         surveyDocument.setAnswer(surveyAnswer);
         surveyDocumentRepository.flush();
+
+        //REST API to survey analyze controller
+        restAPItoAnalyzeController(surveyDocumentId);
     }
 
     // 파이썬으로 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
-    public void giveDocumentIdtoPython(Long surveyDocumentId) throws InvalidPythonException {
+    public void giveDocumentIdtoPython(String stringId) throws InvalidPythonException {
+        long surveyDocumentId = Long.parseLong(stringId);
+
         try {
-            System.out.println("pythonbuilder ");
+            System.out.println("pythonbuilder 시작");
             String arg1;
             ProcessBuilder builder;
 
@@ -291,7 +296,7 @@ public class SurveyService {
             String line = br.readLine();
 
             String inputString = line.replaceAll("'", "");
-            log.info("result python: ");
+            log.info("result python");
             log.info(inputString);
 
 
@@ -512,6 +517,28 @@ public class SurveyService {
         surveyAnalyzeDto.setQuestionAnalyzeList(questionDtos);
 
         return surveyAnalyzeDto;
+    }
+
+
+    private static void restAPItoAnalyzeController(Long surveyDocumentId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("응답 저장 후 -> 분석 시작 REST API 전달");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/research/analyze/create";
+
+        // Make a GET request to the API and retrieve the response
+        String post = webClient.post()
+                .uri(apiUrl)
+                .bodyValue(String.valueOf(surveyDocumentId))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + post);
     }
 
 }
