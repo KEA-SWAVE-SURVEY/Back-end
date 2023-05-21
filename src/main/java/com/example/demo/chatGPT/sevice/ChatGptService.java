@@ -2,13 +2,15 @@ package com.example.demo.chatGPT.sevice;
 
 
 import com.example.demo.chatGPT.config.ChatGptConfig;
-import com.example.demo.chatGPT.request.ChatGptChoice;
-import com.example.demo.chatGPT.request.ChatGptQuestionRequestDto;
-import com.example.demo.chatGPT.request.ChatGptRequestDto;
-import com.example.demo.chatGPT.request.ChatGptResponseDto;
+import com.example.demo.chatGPT.request.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
+
+import java.util.Collections;
+import java.util.List;
+
 @Service
 public class ChatGptService {
 
@@ -30,16 +32,29 @@ public class ChatGptService {
     }
 
     public ChatGptChoice askQuestion(ChatGptQuestionRequestDto requestDto) {
+        Message message = Message.builder()
+                .role(ChatGptConfig.ROLE_USER)
+                .content(requestDto.getQuestion())
+                .build();
+        System.out.println(message);
         return this.getResponse(
                 this.buildHttpEntity(
                         new ChatGptRequestDto(
                                 ChatGptConfig.MODEL,
-                                requestDto.getQuestion(),
-                                ChatGptConfig.MAX_TOKEN,
-                                ChatGptConfig.TEMPERATURE,
-                                ChatGptConfig.TOP_P
+                                Collections.singletonList(message)
                         )
                 )
         );
+    }
+
+    public ChatResultDto chatGptResult(HttpServletRequest request,ChatGptQuestionRequestDto requestDto) {
+
+        ChatGptChoice chatGptChoice=askQuestion(requestDto);
+        ChatResultDto chatResultDto = ChatResultDto.builder()
+                .index(chatGptChoice.getIndex())
+                .text(chatGptChoice.getMessage().getContent())
+                .finishReason(chatGptChoice.getFinishReason())
+                .build();
+        return chatResultDto;
     }
 }
