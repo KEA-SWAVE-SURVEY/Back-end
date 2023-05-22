@@ -47,7 +47,7 @@ public class ChatGptService {
         );
     }
 
-    public ChatResultDto chatGptResult(HttpServletRequest request,ChatGptQuestionRequestDto requestDto) {
+    public ChatResultDto chatGptResult(ChatGptQuestionRequestDto requestDto) {
 
         ChatGptChoice chatGptChoice=askQuestion(requestDto);
         ChatResultDto chatResultDto = ChatResultDto.builder()

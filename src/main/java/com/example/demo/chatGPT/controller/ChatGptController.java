@@ -23,7 +23,7 @@ public class ChatGptController {
     }
 
     @PostMapping("/question")
-    public ChatResultDto sendQuestion(HttpServletRequest request, @RequestBody ChatGptQuestionRequestDto requestDto) {
-        return chatGptService.chatGptResult(request,requestDto);
+    public ChatResultDto sendQuestion(@RequestBody ChatGptQuestionRequestDto requestDto) {
+        return chatGptService.chatGptResult(requestDto);
     }
 }

@@ -2,7 +2,7 @@ package com.example.demo.chatGPT.config;
 public class ChatGptConfig {
     public static final String AUTHORIZATION = "Authorization";
     public static final String BEARER = "Bearer ";
-    public static final String API_KEY = "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";
+    public static final String API_KEY = "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";
     public static final String MODEL = "gpt-3.5-turbo";
     public static final Integer MAX_TOKEN = 3000;
     public static final Double TEMPERATURE = 0.0;
