@@ -33,7 +33,7 @@ public class SurveyController {
 
     // grid 로 조회
     @PostMapping(value = "/api/survey-list-grid")
-    public List<SurveyDocument> readListGrid(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) throws Exception {
+    public List<SurveyDocument> readListGrid(HttpServletRequest request, @RequestBody PageRequestDto pageRequest) {
         return surveyService.readSurveyListByGrid(request, pageRequest);
     }
 
@@ -49,29 +49,29 @@ public class SurveyController {
     }
 
     // 설문 참여
-    @GetMapping(value = "/api/survey/load")
-    public SurveyDetailDto participateSurvey(@RequestBody Long surveyId) {
-        return surveyService.getParticipantSurvey(surveyId);
+    @GetMapping(value = "/api/survey/load/{id}")
+    public SurveyDetailDto participateSurvey(@PathVariable Long id) {
+        return surveyService.getParticipantSurvey(id);
     }
 
     // 설문 응답 저장
     @PostMapping(value = "/api/response/create")
-    public String createResponse(@RequestBody SurveyResponseDto surveyForm) throws InvalidTokenException {
+    public String createResponse(@RequestBody SurveyResponseDto surveyForm) {
         // 설문 응답 저장
         surveyService.createSurveyAnswer(surveyForm);
         return "Success";
     }
 
     // 분석 문항
-    @GetMapping(value = "/api/research/survey/load")
-    public SurveyDetailDto readSurvey(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
-        return surveyService.readSurveyDetail(request, surveyId);
+    @GetMapping(value = "/api/research/survey/load/{id}")
+    public SurveyDetailDto readSurvey(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+        return surveyService.readSurveyDetail(request, id);
     }
 
     // 설문 응답 조회
-    @GetMapping(value = "/api/response")
-    public SurveyDetailDto readResponse(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
-        return surveyService.readCountChoice(request, surveyId);
+    @GetMapping(value = "/api/response/{id}")
+    public SurveyDetailDto readResponse(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+        return surveyService.readCountChoice(request, id);
     }
 
     // todo:설문 관리 수정
@@ -89,15 +89,15 @@ public class SurveyController {
 
     // 설문 분석 시작
     @PostMapping(value = "/api/research/analyze/create")
-    public String saveAnalyze(@RequestBody String surveyId) throws InvalidTokenException {
+    public String saveAnalyze(@RequestBody String surveyId) {
         // 설문 분석 -> 저장 (python)
         surveyService.analyzeApriori(surveyId);
         return "Success";
     }
 
     // 설문 상세 분석 조회
-    @GetMapping(value = "/api/research/analyze")
-    public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
-        return surveyService.readSurveyDetailAnalyze(request, surveyId);
+    @GetMapping(value = "/api/research/analyze/{id}")
+    public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
+        return surveyService.readSurveyDetailAnalyze(request, id);
     }
 }
