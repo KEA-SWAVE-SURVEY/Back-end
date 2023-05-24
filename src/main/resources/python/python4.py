@@ -1,60 +1,72 @@
 import pymysql
-import psycopg2
-import time
-import json
-from datetime import datetime
 from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder
-import argparse
 import pandas as pd
 import copy
-import scipy.stats as stats 
-import numpy as np
+import scipy.stats as stats
+import sys
 
 
-def analyze_for_all():
-   # sourceConnect = pymysql.connect(
-   #    host='localhost',
-   #    user='root',
-   #    password='test1234',
-   #    db='gcu'
-   # )
-    #
-    #
-   # #SQL 예제 : SQL 테이블 둘러보고 다 가져오기
-   # sourceCursor = sourceConnect.cursor()
-    #
-   # rdb = 'show tables'
-   # sourceCursor.execute(rdb)
-    #
-    #
-    #
-   # resultSource = sourceCursor.fetchall()
-    #
-   # #print('Results before insert in source mysql database ', resultSource)
-    #
-   # temp = resultSource
-   # for i in range(0, len(temp)):
-   #     rdb = 'select * from '+''.join(resultSource[i])
-   #     sourceCursor.execute(rdb)
-   #     resultSources = sourceCursor.fetchall()
-   #     #print(resultSources)
-   # #print()
-   # #끝
-    #
-   # rdb = 'select * from choice'
-   # sourceCursor.execute(rdb)
-   # resultSources = sourceCursor.fetchall() # 데이터값 ((1, '치킨', 1), (2, '피자', 1), (3, '김치', 1), (4, 'bhc', 2), (5, 'bbq', 2), (6, '교촌', 2)))
-   # #print('데이터 값: ',resultSources)
+def analyze_for_all(survey_document_id):
+   sourceConnect = pymysql.connect(
+      host='localhost',
+      port=3306,
+      user='root',
+      password='admin',
+      db='surveydb'
+    )
 
-   resultSources =  (
-      ['여성','담배', '보통','아침'],#, '반대','반대'],
-       ['여성','짜장면', '싫음','점심'],#, '반대','찬성'],
-       ['남성','짬뽕', '싫음','점심'],#, '찬성','찬성'],
-       ['남성','피자', '보통','저녁'],#, '반대','반대'],
-       ['남성','짬뽕', '보통','점심'],#, '찬성','찬성'],
-       ['남성','피자', '싫음','저녁'],#, '반대','반대']
-      )
+   # SQL 예제 : SQL 테이블 둘러보고 다 가져오기
+   sourceCursor = sourceConnect.cursor()
+
+   rdb = 'show tables'
+   sourceCursor.execute(rdb)
+
+   resultSource = sourceCursor.fetchall()
+
+   # print('Results before insert in source mysql database ', resultSource)
+
+   temp = resultSource
+   for i in range(0, len(temp)):
+      rdb = 'select * from ' + ''.join(resultSource[i])
+      sourceCursor.execute(rdb)
+      resultSources = sourceCursor.fetchall()
+      # print(resultSources)
+   # print()
+   # 끝
+   rdb = f'SELECT survey_answer_id FROM SURVEY_ANSWER where survey_document_id='+survey_document_id
+
+   sourceCursor.execute(rdb)
+   resultSources = sourceCursor.fetchall()
+   # print("첫번째 sql")
+   # print(resultSources)
+   temp = []
+   for i in resultSources:
+      temp.append(i[0])
+   tempResult = []
+
+   # print(resultSources)
+   for i in temp:
+      # 주관식은 skip // choice type 으로 거르기
+      rdb = f'SELECT check_answer_id FROM QUESTION_ANSWER WHERE survey_answer_id={i} AND question_type <> 0'
+      sourceCursor.execute(rdb)
+      resultSources = sourceCursor.fetchall()
+
+      answer = []
+      for t in resultSources:
+         answer.append(t[0])
+      tempResult.append(answer)
+   resultSources = tempResult
+   # print(resultSources)
+
+   # resultSources =  (
+   #    ['여성','담배', '보통','아침'],#, '반대','반대'],
+   #     ['여성','짜장면', '싫음','점심'],#, '반대','찬성'],
+   #     ['남성','짬뽕', '싫음','점심'],#, '찬성','찬성'],
+   #     ['남성','피자', '보통','저녁'],#, '반대','반대'],
+   #     ['남성','짬뽕', '보통','점심'],#, '찬성','찬성'],
+   #     ['남성','피자', '싫음','저녁'],#, '반대','반대']
+   #    )
    '''
    1. apriori 구현
    2. 코드 구현에 필요한 것(특정 문항 집은놈 고르기)
@@ -255,14 +267,26 @@ def analyze_for_all():
             tempList.append([support, itemset]) 
          ultimateApriori[i][k].append(tempList)
             #print(responsePerAnswer[i][k])# 각 문항별 apriori
-   print([ultimateApriori, compare, chi])
+   print("------------------")
+   print(ultimateApriori)
+   print("------------------")
+   print(compare)
+   print("------------------")
+   print(chi)
+
+   print("------------------")
+   print("------------------")
+   # print([ultimateApriori, compare, chi])
    return [ultimateApriori, compare, chi]
 
-def main():
-   input_param = analyze_for_all()
+def main(id):
+   input_param = analyze_for_all(id)
    return input_param
+
+
 if __name__ == '__main__':
-   result = main()
+   result = main(sys.argv[1])
+   exit(result)
 
 # apriori 구현 이후 필요시 사용할 문항별 디마스킹 (원상복구) 방법 : slice [2: ] 하기
 '''

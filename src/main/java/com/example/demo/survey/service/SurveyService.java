@@ -1,6 +1,8 @@
 package com.example.demo.survey.service;
 
 import com.example.demo.survey.exception.InvalidProcessException;
+import com.example.demo.survey.repository.aprioriAnlayze.AprioriAnalyzeRepository;
+import com.example.demo.survey.repository.compareAnlayze.CompareAnalyzeRepository;
 import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
@@ -43,10 +45,7 @@ import java.io.InputStreamReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
@@ -54,6 +53,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class SurveyService {
+    private final CompareAnalyzeRepository compareAnalyzeRepository;
+    private final AprioriAnalyzeRepository aprioriAnalyzeRepository;
     private final ChoiceAnalyzeRepository choiceAnalyzeRepository;
     private final QuestionAnalyzeRepository questionAnalyzeRepository;
 
@@ -296,13 +297,30 @@ public class SurveyService {
 
             String line = br.readLine();
 
-            String inputString = line.replaceAll("'", "");
+            //[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]
+            /**
+             * [
+             * [['1', [0.6666666666666666, '3'], [0.3333333333333333, '4']], ['2', [0.6666666666666666, '4'], [0.3333333333333333, '3']], ['3', [0.6666666666666666, '1'], [0.3333333333333333, '2']], ['4', [0.6666666666666666, '2'], [0.3333333333333333, '1']]],
+             * [[[1.0], [1.0]], [[1.0], [1.0]]],
+             * [[0.10247043485974942, 1.0], [1.0, 0.10247043485974942]]
+             * ]
+             **/
+            String testString = "[[['1', [0.6666666666666666, '3'], [0.3333333333333333, '4']], ['2', [0.6666666666666666, '4'], [0.3333333333333333, '3']], ['3', [0.6666666666666666, '1'], [0.3333333333333333, '2']], ['4', [0.6666666666666666, '2'], [0.3333333333333333, '1']]], [[[1.0], [1.0]], [[1.0], [1.0]]], [[0.10247043485974942, 1.0], [1.0, 0.10247043485974942]]]";
+
+//            test
+//            String inputString = line.replaceAll("'", "");
+            String inputString = testString.replaceAll("'", "");
+
             log.info("result python");
             log.info(inputString);
 
-
             ObjectMapper objectMapper = new ObjectMapper();
-            List<Object> List = objectMapper.readValue(inputString, List.class);
+            List<Object> testList = objectMapper.readValue(inputString, List.class);
+            log.info(String.valueOf(testList));
+
+            ArrayList<Object> apriori = (ArrayList<Object>) testList.get(0);
+            ArrayList<Object> compare = (ArrayList<Object>) testList.get(1);
+            ArrayList<Object> chi= (ArrayList<Object>) testList.get(2);
 
             // 값 분리해서 Analyze DB에 저장
             SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyDocumentId);
@@ -317,40 +335,100 @@ public class SurveyService {
                         .build();
             }
             surveyAnalyzeRepository.save(surveyAnalyze);
-            //for 위의 예시(남성의 갯수) 배열의 갯수 만큼 (즉 설문의 총 choice 의 수) 루프
-            //[[1,[[0.88,3],[0.8,5]]],[2,[[0.7,4],[0.5,6]]]]
-            for (int j = 0; j < List.size(); j++) {
-                java.util.List<Object> dataList = (List<Object>) List.get(j);
-                Long choiceId = Long.valueOf((Integer) dataList.get(0));
+
+            int p = 0;
+            for (QuestionDocument questionDocument : surveyDocumentRepository.findById(surveyDocumentId).get().getQuestionDocumentList()) {
+                if (questionDocument.getQuestionType() == 0) {
+                    continue;
+                }
                 QuestionAnalyze questionAnalyze = new QuestionAnalyze();
                 questionAnalyze = QuestionAnalyze.builder()
+                        .questionTitle(questionDocument.getTitle())
                         .surveyAnalyzeId(surveyAnalyze)
-                        .choiceId(choiceId)
-                        .choiceTitle(choiceRepository.findById(choiceId).get().getTitle())
-                        .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId).get().getQuestion_id().getId()).get().getTitle())
-                        .choiceAnalyzeList(new ArrayList<>())
                         .build();
 
                 questionAnalyzeRepository.save(questionAnalyze);
 
-                // for문 [0.88,2] 같은 배열의 갯수 만큼
-                // [[0.88,3],[0.8,5]]
-                for (int i = 0; i < dataList.size()-1; i++) {
-                    List<Object> subList = (List<Object>) dataList.get(i+1);
-                    ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
-                    double support = Math.round((double) subList.get(0) *1000) / 1000.0;
-                    Long choiceId2 = Long.valueOf((Integer) subList.get(1));
-                    choiceAnalyze = choiceAnalyze.builder()
-                            .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
-                            .support(support)
+                //compare
+                // [[[1.0], [1.0]], [[1.0], [1.0]]]
+                java.util.List<Object> compareList = (List<Object>) compare.get(p);
+                // [[1.0], [1.0]] -> compareList
+                List<QuestionDocument> questionDocumentList = surveyDocumentRepository.findById(surveyDocumentId).get().getQuestionDocumentList();
+                int size = questionDocumentList.size();
+                int o=0;
+                for (int k = 0; k < size; k++) {
+                    if (questionDocumentList.get(k).getQuestionType() == 0) {
+                        continue;
+                    }
+                    ArrayList<Double> temp = (ArrayList<Double>) compareList.get(o);
+                    Double pValue = temp.get(0); // Assuming you want to retrieve the first Double value from the ArrayList
+
+                    CompareAnalyze compareAnalyze = new CompareAnalyze();
+                    compareAnalyze = CompareAnalyze.builder()
                             .questionAnalyzeId(questionAnalyze)
-                            .choiceId(choiceId2)
-                            .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId2).get().getQuestion_id().getId()).get().getTitle())
+                            .pValue(pValue)
+                            .questionTitle(questionDocumentList.get(k).getTitle())
                             .build();
-                    choiceAnalyzeRepository.save(choiceAnalyze);
+                    o++;
+                    compareAnalyzeRepository.save(compareAnalyze);
+                }
+
+                //apriori
+                for (int j = 0; j < apriori.size(); j++) {
+                    // [['1', [0.66, '3'], [0.33, '4']]
+                    java.util.List<Object> dataList = (List<Object>) apriori.get(j);
+                    Long choiceId = Long.valueOf((Integer) dataList.get(0));
+                    AprioriAnalyze aprioriAnalyze = new AprioriAnalyze();
+                    aprioriAnalyze = AprioriAnalyze.builder()
+                            .choiceId(choiceId)
+                            .choiceTitle(choiceRepository.findById(choiceId).get().getTitle())
+                            .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId).get().getQuestion_id().getId()).get().getTitle())
+                            .choiceAnalyzeList(new ArrayList<>())
+                            .questionAnalyzeId(questionAnalyze)
+                            .build();
+
+                    aprioriAnalyzeRepository.save(aprioriAnalyze);
+                    // for문 [0.88,2] 같은 배열의 갯수 만큼
+                    // [[0.88,3],[0.8,5]]
+                    for (int i = 0; i < dataList.size()-1; i++) {
+                        List<Object> subList = (List<Object>) dataList.get(i+1);
+                        ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
+                        double support = Math.round((double) subList.get(0) *1000) / 1000.0;
+                        Long choiceId2 = Long.valueOf((Integer) subList.get(1));
+                        choiceAnalyze = choiceAnalyze.builder()
+                                .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
+                                .support(support)
+                                .aprioriAnalyzeId(aprioriAnalyze)
+                                .choiceId(choiceId2)
+                                .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId2).get().getQuestion_id().getId()).get().getTitle())
+                                .build();
+                        choiceAnalyzeRepository.save(choiceAnalyze);
+                    }
+                    aprioriAnalyzeRepository.flush();
+                }
+
+                questionAnalyzeRepository.flush();
+                p++;
+            }
+
+            // compare
+            // 1번 문항에 대해 고른 응답의 비율과 2번 문항에 대해 고른 응답의 비율
+            // [[[찬부식 - 찬부식],[찬부식 - 객관식]][[객관식-찬부식],[찬부식-객관식]]]
+            // [[[1.0], [1.0]], [[1.0], [1.0]]]
+            // compare의 size는 총 question(not 주관식)의 갯수
+            for (int j = 0; j < compare.size(); j++) {
+                // [[1.0], [1.0]]
+                java.util.List<Object> dataList = (List<Object>) compare.get(j);
+                //dataList size == questionList size
+                for (int i = 0; i < dataList.size(); i++) {
+
                 }
             }
-        } catch (IOException e) {
+
+            // Word Cloud 분석해서 이미지를 외부 서버에 저장 후 url를 가져와서 count 처럼 document에 저장
+            // Word Cloud
+            surveyAnalyzeRepository.flush();
+        }catch (IOException e) {
             // 체크 예외 -> 런타임 커스텀 예외 변환 처리
             // python 파일 오류
             throw new InvalidPythonException(e);
@@ -456,8 +534,10 @@ public class SurveyService {
             // 객관식 찬부식 -> 기존 방식 과 똑같이 count를 올려서 저장
             List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
             if (questionDocument.getQuestionType() == 0) {
+                // 주관식 답변들 리스트
                 List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
                 for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
+                    // 그 중에 주관식 답변만
                     if (questionAnswer.getQuestionType() == 0) {
                         ChoiceDetailDto choiceDto = new ChoiceDetailDto();
                         choiceDto.setId(questionAnswer.getId());
@@ -498,19 +578,40 @@ public class SurveyService {
         for (QuestionAnalyze questionAnalyze : surveyAnalyze.getQuestionAnalyzeList()) {
             QuestionAnalyzeDto questionDto = new QuestionAnalyzeDto();
             questionDto.setId(questionAnalyze.getId());
-            questionDto.setChoiceTitle(questionAnalyze.getChoiceTitle());
             questionDto.setQuestionTitle(questionAnalyze.getQuestionTitle());
 
-            List<ChoiceAnalyzeDto> choiceDtos = new ArrayList<>();
-            for (ChoiceAnalyze choice : questionAnalyze.getChoiceAnalyzeList()) {
-                ChoiceAnalyzeDto choiceDto = new ChoiceAnalyzeDto();
-                choiceDto.setId(choice.getId());
-                choiceDto.setChoiceTitle(choice.getChoiceTitle());
-                choiceDto.setSupport(choice.getSupport());
-                choiceDto.setQuestionTitle(choice.getQuestionTitle());
-                choiceDtos.add(choiceDto);
+            List<CompareAnalyzeDto> compareAnalyzeDtos = new ArrayList<>();
+            for (CompareAnalyze compareAnalyze : questionAnalyze.getCompareAnalyzeList()) {
+                CompareAnalyzeDto compareAnalyzeDto = new CompareAnalyzeDto();
+                compareAnalyzeDto.setId(compareAnalyze.getId());
+                compareAnalyzeDto.setPValue(compareAnalyze.getPValue());
+                compareAnalyzeDto.setQuestionTitle(compareAnalyze.getQuestionTitle());
+
+                compareAnalyzeDtos.add(compareAnalyzeDto);
             }
-            questionDto.setChoiceAnalyzeList(choiceDtos);
+            questionDto.setCompareAnalyzeList(compareAnalyzeDtos);
+
+
+            List<AprioriAnalyzeDto> aprioriAnalyzeDtos = new ArrayList<>();
+            for (AprioriAnalyze aprioriAnalyze : questionAnalyze.getAprioriAnalyzeList()) {
+                AprioriAnalyzeDto aprioriAnalyzeDto = new AprioriAnalyzeDto();
+                aprioriAnalyzeDto.setId(aprioriAnalyze.getId());
+                aprioriAnalyzeDto.setChoiceTitle(aprioriAnalyze.getChoiceTitle());
+                aprioriAnalyzeDto.setQuestionTitle(aprioriAnalyze.getQuestionTitle());
+
+                List<ChoiceAnalyzeDto> choiceDtos = new ArrayList<>();
+                    for (ChoiceAnalyze choice : aprioriAnalyze.getChoiceAnalyzeList()) {
+                        ChoiceAnalyzeDto choiceDto = new ChoiceAnalyzeDto();
+                        choiceDto.setId(choice.getId());
+                        choiceDto.setChoiceTitle(choice.getChoiceTitle());
+                        choiceDto.setSupport(choice.getSupport());
+                        choiceDto.setQuestionTitle(choice.getQuestionTitle());
+                        choiceDtos.add(choiceDto);
+                    }
+                aprioriAnalyzeDto.setChoiceAnalyzeList(choiceDtos);
+                aprioriAnalyzeDtos.add(aprioriAnalyzeDto);
+            }
+            questionDto.setAprioriAnalyzeList(aprioriAnalyzeDtos);
 
             questionDtos.add(questionDto);
         }
@@ -518,7 +619,6 @@ public class SurveyService {
 
         return surveyAnalyzeDto;
     }
-
 
     private static void restAPItoAnalyzeController(Long surveyDocumentId) {
         //REST API로 분석 시작 컨트롤러로 전달
