@@ -91,7 +91,9 @@ public class SurveyController {
     @PostMapping(value = "/api/research/analyze/create")
     public String saveAnalyze(@RequestBody String surveyId) {
         // 설문 분석 -> 저장 (python)
-        surveyService.analyzeApriori(surveyId);
+        surveyService.analyze(surveyId);
+        // 주관식 분석 -> 저장
+        surveyService.wordCloud(surveyId);
         return "Success";
     }
 

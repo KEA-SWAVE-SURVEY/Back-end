@@ -21,7 +21,12 @@ public class QuestionDocument {
     @Column(name = "question_type")
     private int questionType;
 
-    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore //순환참조 방지
+    @Column(name = "wordCloud_list")
+    private List<WordCloud> wordCloudList;
+
+    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore //순환참조 방지
     @Column(name = "choice_list")
     private List<Choice> choiceList;
@@ -34,11 +39,12 @@ public class QuestionDocument {
     // 생성자 오버로딩
     @Builder
     // 객관식 생성자
-    public QuestionDocument(SurveyDocument surveyDocument, String title, int questionType, List<Choice> choiceList) {
+    public QuestionDocument(List<WordCloud> wordCloudList, SurveyDocument surveyDocument, String title, int questionType, List<Choice> choiceList) {
         this.surveyDocumentId = surveyDocument;
         this.title = title;
         this.questionType = questionType;
         this.choiceList = choiceList;
+        this.wordCloudList = wordCloudList;
     }
 
     @Builder

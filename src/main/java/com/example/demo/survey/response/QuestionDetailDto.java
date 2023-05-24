@@ -17,5 +17,7 @@ public class QuestionDetailDto {
     private String title;
     private int questionType;
     private List<ChoiceDetailDto> choiceList;
+
+    private List<WordCloudDto> wordCloudDtos;
     // getter, setter 생략
 }
