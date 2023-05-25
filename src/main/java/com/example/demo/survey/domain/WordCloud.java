@@ -23,12 +23,12 @@ public class WordCloud {
     @ManyToOne
     @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "question_id")
-    private QuestionDocument question_id;
+    private QuestionDocument questionDocument;
 
     @Builder
-    public WordCloud(String title, QuestionDocument question_id, int count) {
+    public WordCloud(String title, QuestionDocument questionDocument, int count) {
         this.title = title;
-        this.question_id = question_id;
+        this.questionDocument = questionDocument;
         this.count = count;
     }
 }

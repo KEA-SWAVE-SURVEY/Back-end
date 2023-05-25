@@ -26,14 +26,12 @@ public class SurveyAnswer {
     @Column(name = "content")
     private List<QuestionAnswer> questionanswersList;
 
-    @ManyToOne
-    @JsonIgnore // 순환참조 방지
-    @JoinColumn(name = "survey_document_Id")
-    private SurveyDocument surveyDocument;
+    @Column(name = "survey_document_Id")
+    private Long surveyDocumentId;
 
     @Builder
-    public SurveyAnswer(SurveyDocument surveyDocument, String title, int type, String description, List<QuestionAnswer> questionAnswerList) {
-        this.surveyDocument = surveyDocument;
+    public SurveyAnswer(Long surveyDocumentId, String title, int type, String description, List<QuestionAnswer> questionAnswerList) {
+        this.surveyDocumentId = surveyDocumentId;
         this.title = title;
         this.type = type;
         this.description = description;

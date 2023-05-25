@@ -16,19 +16,17 @@ public class SurveyAnalyze {
     @Column(name = "survey_analyze_id")
     private Long id;
 
+    @Column(name = "survey_document_id")
+    private Long surveyDocumentId;
+
     @OneToMany(mappedBy = "surveyAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore //순환참조 방지
     @Column(name = "연관분석")
     private List<QuestionAnalyze> questionAnalyzeList;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
-    @JoinColumn(name = "survey_document_id")
-    private SurveyDocument surveyDocument;
 
     @Builder
-    public SurveyAnalyze(List<QuestionAnalyze> questionAnalyzeList, SurveyDocument surveyDocument) {
+    public SurveyAnalyze(List<QuestionAnalyze> questionAnalyzeList, Long surveyDocumentId) {
         this.questionAnalyzeList = questionAnalyzeList;
-        this.surveyDocument = surveyDocument;
+        this.surveyDocumentId = surveyDocumentId;
     }
 }

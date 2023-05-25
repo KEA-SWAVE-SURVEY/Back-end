@@ -25,17 +25,14 @@ public class QuestionAnalyze {
     private String wordCloud;
 
     @OneToMany(mappedBy = "questionAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore //순환참조 방지
     @Column(name = "apriori_list")
     private List<AprioriAnalyze> aprioriAnalyzeList;
 
     @OneToMany(mappedBy = "questionAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore //순환참조 방지
     @Column(name = "chi_list")
     private List<ChiAnalyze> chiAnalyzeList;
 
     @OneToMany(mappedBy = "questionAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore //순환참조 방지
     @Column(name = "compare_list")
     private List<CompareAnalyze> compareAnalyzeList;
 

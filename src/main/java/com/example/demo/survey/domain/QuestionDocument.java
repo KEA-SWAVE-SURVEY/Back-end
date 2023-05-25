@@ -21,18 +21,16 @@ public class QuestionDocument {
     @Column(name = "question_type")
     private int questionType;
 
-    @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore //순환참조 방지
+    @OneToMany(mappedBy = "questionDocument", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Column(name = "wordCloud_list")
     private List<WordCloud> wordCloudList;
 
     @OneToMany(mappedBy = "question_id", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore //순환참조 방지
     @Column(name = "choice_list")
     private List<Choice> choiceList;
 
     @ManyToOne
-    @JsonIgnore // 순환참조 방지
+    @JsonIgnore
     @JoinColumn(name = "survey_document_id")
     private SurveyDocument surveyDocumentId;
 

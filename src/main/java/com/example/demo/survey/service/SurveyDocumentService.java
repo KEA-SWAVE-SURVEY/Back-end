@@ -1,16 +1,14 @@
 package com.example.demo.survey.service;
 
-import com.example.demo.survey.repository.aprioriAnlayze.AprioriAnalyzeRepository;
-import com.example.demo.survey.repository.chiAnlayze.ChiAnalyzeRepository;
-import com.example.demo.survey.repository.compareAnlayze.CompareAnalyzeRepository;
-import com.example.demo.survey.repository.wordCloud.WordCloudRepository;
-import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
 import com.example.demo.survey.exception.InvalidSurveyException;
 import com.example.demo.survey.exception.InvalidTokenException;
+import com.example.demo.survey.repository.aprioriAnlayze.AprioriAnalyzeRepository;
+import com.example.demo.survey.repository.chiAnlayze.ChiAnalyzeRepository;
 import com.example.demo.survey.repository.choice.ChoiceRepository;
 import com.example.demo.survey.repository.choiceAnalyze.ChoiceAnalyzeRepository;
+import com.example.demo.survey.repository.compareAnlayze.CompareAnalyzeRepository;
 import com.example.demo.survey.repository.questionAnlayze.QuestionAnalyzeRepository;
 import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
 import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
@@ -18,13 +16,13 @@ import com.example.demo.survey.repository.survey.SurveyRepository;
 import com.example.demo.survey.repository.surveyAnalyze.SurveyAnalyzeRepository;
 import com.example.demo.survey.repository.surveyAnswer.SurveyAnswerRepository;
 import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
+import com.example.demo.survey.repository.wordCloud.WordCloudRepository;
 import com.example.demo.survey.request.ChoiceRequestDto;
 import com.example.demo.survey.request.PageRequestDto;
 import com.example.demo.survey.request.QuestionRequestDto;
 import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.response.*;
 import com.example.demo.user.domain.User;
-import com.example.demo.user.repository.UserRepository;
 import com.example.demo.user.service.UserService2;
 import com.example.demo.util.page.PageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,10 +50,10 @@ import static org.thymeleaf.util.ArrayUtils.contains;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
-//@Service
+@Service
 @RequiredArgsConstructor
 @Slf4j
-public class SurveyService {
+public class SurveyDocumentService {
     private final WordCloudRepository wordCloudRepository;
     private final ChiAnalyzeRepository chiAnalyzeRepository;
     private final CompareAnalyzeRepository compareAnalyzeRepository;
@@ -64,7 +62,6 @@ public class SurveyService {
     private final QuestionAnalyzeRepository questionAnalyzeRepository;
 
     private final UserService2 userService;
-    private final UserRepository userRepository;
     private final SurveyRepository surveyRepository;
     private final SurveyDocumentRepository surveyDocumentRepository;
     private final QuestionDocumentRepository questionDocumentRepository;
@@ -207,7 +204,7 @@ public class SurveyService {
 
         // Survey Response 를 Survey Answer 에 저장하기
         SurveyAnswer surveyAnswer = SurveyAnswer.builder()
-                .surveyDocumentId(surveyDocumentId)
+                .surveyDocumentId(surveyDocument.getId())
                 .title(surveyResponse.getTitle())
                 .description(surveyResponse.getDescription())
                 .type(surveyResponse.getType())
@@ -356,7 +353,7 @@ public class SurveyService {
 
                 // compare
                 // [[[1.0], [1.0]], [[1.0], [1.0]]]
-                java.util.List<Object> compareList = (List<Object>) compare.get(p);
+                List<Object> compareList = (List<Object>) compare.get(p);
                 // [[1.0], [1.0]] -> compareList
                 List<QuestionDocument> questionDocumentList = surveyDocumentRepository.findById(surveyDocumentId).get().getQuestionDocumentList();
                 int size = questionDocumentList.size();
@@ -383,7 +380,7 @@ public class SurveyService {
 
                 // chi
                 // [[0.10247043485974942, 1.0], [1.0, 0.10247043485974942]]
-                java.util.List<Object> chiList = (List<Object>) chi.get(p);
+                List<Object> chiList = (List<Object>) chi.get(p);
                 // [0.10247043485974942, 1.0] -> chiList
                 o=0;
                 for (int k = 0; k < size; k++) {
@@ -407,7 +404,7 @@ public class SurveyService {
                 //apriori
                 for (int j = 0; j < apriori.size(); j++) {
                     // [['1', [0.66, '3'], [0.33, '4']]
-                    java.util.List<Object> dataList = (List<Object>) apriori.get(j);
+                    List<Object> dataList = (List<Object>) apriori.get(j);
                     Long choiceId = Long.valueOf((Integer) dataList.get(0));
                     AprioriAnalyze aprioriAnalyze = new AprioriAnalyze();
                     aprioriAnalyze = AprioriAnalyze.builder()
@@ -442,19 +439,19 @@ public class SurveyService {
                 p++;
             }
 
-//            // compare
-//            // 1번 문항에 대해 고른 응답의 비율과 2번 문항에 대해 고른 응답의 비율
-//            // [[[찬부식 - 찬부식],[찬부식 - 객관식]][[객관식-찬부식],[찬부식-객관식]]]
-//            // [[[1.0], [1.0]], [[1.0], [1.0]]]
-//            // compare의 size는 총 question(not 주관식)의 갯수
-//            for (int j = 0; j < compare.size(); j++) {
-//                // [[1.0], [1.0]]
-//                java.util.List<Object> dataList = (List<Object>) compare.get(j);
-//                //dataList size == questionList size
-//                for (int i = 0; i < dataList.size(); i++) {
-//
-//                }
-//            }
+            // compare
+            // 1번 문항에 대해 고른 응답의 비율과 2번 문항에 대해 고른 응답의 비율
+            // [[[찬부식 - 찬부식],[찬부식 - 객관식]][[객관식-찬부식],[찬부식-객관식]]]
+            // [[[1.0], [1.0]], [[1.0], [1.0]]]
+            // compare의 size는 총 question(not 주관식)의 갯수
+            for (int j = 0; j < compare.size(); j++) {
+                // [[1.0], [1.0]]
+                List<Object> dataList = (List<Object>) compare.get(j);
+                //dataList size == questionList size
+                for (int i = 0; i < dataList.size(); i++) {
+
+                }
+            }
 
             // Word Cloud 분석해서 이미지를 외부 서버에 저장 후 url를 가져와서 count 처럼 document에 저장
             // Word Cloud
@@ -606,6 +603,20 @@ public class SurveyService {
         return getSurveyDetailAnalyzeDto(surveyAnalyze.getId());
     }
 
+    public SurveyDocument getSurveyDocument(Long surveyDocumentId) {
+        return surveyDocumentRepository.findById(surveyDocumentId).get();
+    }
+
+    //count +1
+    public void countChoice(Long choiceId) {
+        Optional<Choice> findChoice = choiceRepository.findById(choiceId);
+        if (findChoice.isPresent()) {
+            //todo: querydsl로 변경
+            findChoice.get().setCount(findChoice.get().getCount() + 1);
+            choiceRepository.flush();
+        }
+    }
+
     // 회원 유효성 검사, token 존재하지 않으면 예외처리
     private static void checkInvalidToken(HttpServletRequest request) throws InvalidTokenException {
         if(request.getHeader("Authorization") == null) {
@@ -638,7 +649,9 @@ public class SurveyService {
             List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
             if (questionDocument.getQuestionType() == 0) {
                 // 주관식 답변들 리스트
-                List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
+//                List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
+                //REST API GET questionAnswersByCheckAnswerId
+                List<QuestionAnswer> questionAnswersByCheckAnswerId = getQuestionAnswersByCheckAnswerId(questionDocument.getId());
                 for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
                     // 그 중에 주관식 답변만
                     if (questionAnswer.getQuestionType() == 0) {
@@ -767,6 +780,30 @@ public class SurveyService {
         System.out.println("Request: " + post);
     }
 
+    private static List<QuestionAnswer> getQuestionAnswersByCheckAnswerId(Long questionDocumentId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("응답 db에서 주관식 리스트 가져오기");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/question/list/"+ questionDocumentId;
+
+        // Make a GET request to the API and retrieve the response
+        String post = webClient.get()
+                .uri(apiUrl)
+                .header("Authorization","NotNull")
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + post);
+
+        List<QuestionAnswer> questionAnswerList = new ArrayList<>();
+        return questionAnswerList;
+    }
+
     private static String removeStopwords(List<String> inputList, List<String> stopwords) {
         List<String> filteredList = new ArrayList<>();
 
@@ -807,4 +844,32 @@ public class SurveyService {
         return wordCount;
     }
 
+
+    public Choice getChoice(Long id) {
+        Optional<Choice> byId = choiceRepository.findById(id);
+        return byId.get();
+    }
+    public QuestionDocument getQuestion(Long id) {
+        Optional<QuestionDocument> byId = questionDocumentRepository.findById(id);
+        return byId.get();
+    }
+
+    public QuestionDocument getQuestionByChoiceId(Long id) {
+        return choiceRepository.findById(id).get().getQuestion_id();
+    }
+
+    public void setWordCloud(Long id, List<WordCloudDto> wordCloudDtos) {
+        List<WordCloud> wordCloudList = new ArrayList<>();
+        for (WordCloudDto wordCloudDto : wordCloudDtos) {
+            WordCloud wordCloud = new WordCloud();
+            wordCloud.setId(wordCloudDto.getId());
+            wordCloud.setTitle(wordCloudDto.getTitle());
+            wordCloud.setCount(wordCloudDto.getCount());
+            wordCloud.setQuestionDocument(questionDocumentRepository.findById(id).get());
+            wordCloudList.add(wordCloud);
+        }
+        wordCloudRepository.deleteAllByQuestionDocument(questionDocumentRepository.findById(id).get());
+        questionDocumentRepository.findById(id).get().setWordCloudList(wordCloudList);
+        questionDocumentRepository.flush();
+    }
 }
