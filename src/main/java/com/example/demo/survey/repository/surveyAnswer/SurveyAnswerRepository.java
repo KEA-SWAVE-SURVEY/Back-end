@@ -1,5 +1,7 @@
 package com.example.demo.survey.repository.surveyAnswer;
 
+import com.example.demo.survey.domain.QuestionAnswer;
+import com.example.demo.survey.domain.SurveyAnalyze;
 import com.example.demo.survey.domain.SurveyAnswer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

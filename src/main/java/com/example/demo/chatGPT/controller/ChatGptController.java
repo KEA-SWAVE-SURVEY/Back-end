@@ -4,7 +4,9 @@ package com.example.demo.chatGPT.controller;
 import com.example.demo.chatGPT.request.ChatGptChoice;
 import com.example.demo.chatGPT.request.ChatGptQuestionRequestDto;
 import com.example.demo.chatGPT.request.ChatGptResponseDto;
+import com.example.demo.chatGPT.request.ChatResultDto;
 import com.example.demo.chatGPT.sevice.ChatGptService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +23,7 @@ public class ChatGptController {
     }
 
     @PostMapping("/question")
-    public ChatGptChoice sendQuestion(@RequestBody ChatGptQuestionRequestDto requestDto) {
-        return chatGptService.askQuestion(requestDto);
+    public ChatResultDto sendQuestion(@RequestBody ChatGptQuestionRequestDto requestDto) {
+        return chatGptService.chatGptResult(requestDto);
     }
 }

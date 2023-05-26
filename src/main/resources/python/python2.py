@@ -1,11 +1,6 @@
 import pymysql
-import psycopg2
-import time
-import json
-from datetime import datetime
 from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder
-import argparse
 import pandas as pd
 import sys
 

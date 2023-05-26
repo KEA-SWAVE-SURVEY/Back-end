@@ -19,18 +19,22 @@ public class QuestionAnalyze {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "question_analyze_id")
     private Long id;
-    @Column(name = "choiceId(연관분석할 choiceId)")
-    private Long choiceId;
     @Column(name = "question_title")
     private String questionTitle;
-    @Column(name = "choice_title")
-    private String choiceTitle;
-
+    @Column(name = "word_cloud")
+    private String wordCloud;
 
     @OneToMany(mappedBy = "questionAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore //순환참조 방지
-    @Column(name = "choice_list")
-    private List<ChoiceAnalyze> choiceAnalyzeList;
+    @Column(name = "apriori_list")
+    private List<AprioriAnalyze> aprioriAnalyzeList;
+
+    @OneToMany(mappedBy = "questionAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Column(name = "chi_list")
+    private List<ChiAnalyze> chiAnalyzeList;
+
+    @OneToMany(mappedBy = "questionAnalyzeId", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Column(name = "compare_list")
+    private List<CompareAnalyze> compareAnalyzeList;
 
     @ManyToOne
     @JsonIgnore // 순환참조 방지
