@@ -12,6 +12,8 @@ import com.example.demo.survey.service.SurveyService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.UnknownHostException;
@@ -99,5 +101,17 @@ public class SurveyController {
     @GetMapping(value = "/api/research/analyze")
     public SurveyAnalyzeDto readDetailAnalyze(HttpServletRequest request, @RequestBody Long surveyId) throws InvalidTokenException {
         return surveyService.readSurveyDetailAnalyze(request, surveyId);
+    }
+
+    // 설문 삭제
+    @PutMapping(value = "/api/survey/management/delete/{surveyId}")
+    public ResponseEntity deleteSurveyDocument(HttpServletRequest request, @PathVariable Long surveyId) {
+        return surveyService.deleteSurvey(request, surveyId);
+    }
+
+    // 설문 수정
+    @PutMapping(value = "/api/survey/management/update/{surveyId}")
+    public ResponseEntity updateSurveyDocument(SurveyRequestDto surveyRequest, @PathVariable Long surveyId) {
+        return surveyService.updateSurvey(surveyRequest, surveyId);
     }
 }

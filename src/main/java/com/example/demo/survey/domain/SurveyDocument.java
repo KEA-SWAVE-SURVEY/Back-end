@@ -54,6 +54,8 @@ public class SurveyDocument {
     @Column(name = "survey_answerList")
     private List<SurveyAnswer> surveyAnswerList;
 
+    private boolean isDeleted = false;
+
     @Builder
     public SurveyDocument(List<SurveyAnswer> surveyAnswerList, Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, SurveyAnalyze surveyAnalyze) {
         this.survey = survey;
@@ -76,4 +78,5 @@ public class SurveyDocument {
     public void setAnalyze(SurveyAnalyze surveyAnalyze) {
         this.surveyAnalyze=surveyAnalyze;
     }
+
 }

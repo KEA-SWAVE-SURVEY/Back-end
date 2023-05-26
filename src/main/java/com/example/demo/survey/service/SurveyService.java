@@ -1,6 +1,5 @@
 package com.example.demo.survey.service;
 
-import com.example.demo.survey.exception.InvalidProcessException;
 import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
@@ -26,7 +25,6 @@ import com.example.demo.user.service.UserService2;
 import com.example.demo.util.page.PageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -34,19 +32,17 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
@@ -540,6 +536,45 @@ public class SurveyService {
 
         // Process the response as needed
         System.out.println("Request: " + post);
+    }
+
+    // 설문 삭제 service
+    // todo Document 삭제시 Answer, Analyze 모두 삭제되게 구현 : DB 참조 무결성 >> cascade 로 해결
+    public ResponseEntity deleteSurvey(HttpServletRequest request, Long surveyId) {
+        // 해당 설문 찾기
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyId).orElseThrow(
+                InvalidSurveyException::new);
+        // 삭제가 될 경우
+        if(surveyDocument.isDeleted()) {
+            surveyDocument.setDeleted(true);
+            return new ResponseEntity<>("success delete", HttpStatus.OK);
+        }
+        else { // 이미 삭제된 데이터
+            return new ResponseEntity<>("fail :: bad request 400",HttpStatus.BAD_REQUEST)
+        }
+
+    }
+
+    // 설문 수정 service
+    // todo : 설문 시작 날짜 전에만 실행 되도록 설정
+    @Transactional
+    public ResponseEntity updateSurvey(SurveyRequestDto surveyRequest, Long surveyId) {
+        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyId).orElseThrow(
+                InvalidSurveyException::new);
+
+        update(surveyDocument, surveyRequest);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private void update(SurveyDocument surveyDocument, SurveyRequestDto surveyRequest) {
+        // 기존 데이터와 일치 확인 true 일때만 변화
+        checkIsChanged(surveyDocument.getTitle(), surveyRequest.getTitle())
+    }
+
+    private static boolean checkIsChanged(String before, String after) {
+        // 같으면 false, 다르면 true
+        return !before.equals(after);
     }
 
 }
