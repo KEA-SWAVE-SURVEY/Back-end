@@ -22,17 +22,17 @@ public class SurveyAnalyzeController {
 
     private final SurveyAnalyzeService surveyService;
 
-//    // 분석 문항
-//    @GetMapping(value = "/api/research/survey/load/{id}")
-//    public SurveyDetailDto readSurvey(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
-//        return surveyService.readSurveyDetail(request, id);
-//    }
+    // 분석 문항
+    @GetMapping(value = "/api/research/survey/load/{id}")
+    public SurveyDetailDto readSurvey(@PathVariable Long id) {
+        return surveyService.getSurveyDetailDto(id);
+    }
 
-//    // 설문 응답 조회
-//    @GetMapping(value = "/api/response/{id}")
-//    public SurveyDetailDto readResponse(HttpServletRequest request, @PathVariable Long id) throws InvalidTokenException {
-//        return surveyService.readCountChoice(request, id);
-//    }
+    // 설문 응답 조회
+    @GetMapping(value = "/api/response/{id}")
+    public SurveyDetailDto readResponse(@PathVariable Long id) {
+        return surveyService.getSurveyDetailDto(id);
+    }
 //
 //    // todo:설문 관리 수정
 //    @GetMapping(value = "/api/survey/management/{surveyId}")

@@ -421,72 +421,73 @@ public class SurveyAnalyzeService {
     }
 
     // SurveyDocument Response 보낼 SurveyDetailDto로 변환하는 메서드
-//    private SurveyDetailDto getSurveyDetailDto(Long surveyDocumentId) {
-////        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
-//        SurveyDocument surveyDocument = getSurveyDocument(surveyDocumentId);
-//
-//        SurveyDetailDto surveyDetailDto = new SurveyDetailDto();
-//
-//        // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
-//        surveyDetailDto.setId(surveyDocument.getId());
-//        surveyDetailDto.setTitle(surveyDocument.getTitle());
-//        surveyDetailDto.setDescription(surveyDocument.getDescription());
-//
-//        List<QuestionDetailDto> questionDtos = new ArrayList<>();
-//        for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
-//            QuestionDetailDto questionDto = new QuestionDetailDto();
-//            questionDto.setId(questionDocument.getId());
-//            questionDto.setTitle(questionDocument.getTitle());
-//            questionDto.setQuestionType(questionDocument.getQuestionType());
-//
-//            // question type에 따라 choice 에 들어갈 내용 구분
-//            // 주관식이면 choice title에 주관식 응답을 저장??
-//            // 객관식 찬부식 -> 기존 방식 과 똑같이 count를 올려서 저장
-//            List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
-//            if (questionDocument.getQuestionType() == 0) {
-//                // 주관식 답변들 리스트
+    public SurveyDetailDto getSurveyDetailDto(Long surveyDocumentId) {
+//        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
+        SurveyDocument surveyDocument = getSurveyDocument(surveyDocumentId);
+
+        SurveyDetailDto surveyDetailDto = new SurveyDetailDto();
+
+        // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
+        surveyDetailDto.setId(surveyDocument.getId());
+        surveyDetailDto.setTitle(surveyDocument.getTitle());
+        surveyDetailDto.setDescription(surveyDocument.getDescription());
+
+        List<QuestionDetailDto> questionDtos = new ArrayList<>();
+        for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
+            QuestionDetailDto questionDto = new QuestionDetailDto();
+            questionDto.setId(questionDocument.getId());
+            questionDto.setTitle(questionDocument.getTitle());
+            questionDto.setQuestionType(questionDocument.getQuestionType());
+
+            // question type에 따라 choice 에 들어갈 내용 구분
+            // 주관식이면 choice title에 주관식 응답을 저장??
+            // 객관식 찬부식 -> 기존 방식 과 똑같이 count를 올려서 저장
+            List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
+            if (questionDocument.getQuestionType() == 0) {
+                // 주관식 답변들 리스트
 //                List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
-//                for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
-//                    // 그 중에 주관식 답변만
-//                    if (questionAnswer.getQuestionType() == 0) {
-//                        ChoiceDetailDto choiceDto = new ChoiceDetailDto();
-//                        choiceDto.setId(questionAnswer.getId());
-//                        choiceDto.setTitle(questionAnswer.getCheckAnswer());
-//                        choiceDto.setCount(0);
-//
-//                        choiceDtos.add(choiceDto);
-//                    }
-//                }
-//            } else {
-//                for (Choice choice : questionDocument.getChoiceList()) {
-//                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
-//                    choiceDto.setId(choice.getId());
-//                    choiceDto.setTitle(choice.getTitle());
-//                    choiceDto.setCount(choice.getCount());
-//
-//                    choiceDtos.add(choiceDto);
-//                }
-//            }
-//            questionDto.setChoiceList(choiceDtos);
-//
-//            List<WordCloudDto> wordCloudDtos = new ArrayList<>();
-//            for (WordCloud wordCloud : questionDocument.getWordCloudList()) {
-//                WordCloudDto wordCloudDto = new WordCloudDto();
-//                wordCloudDto.setId(wordCloud.getId());
-//                wordCloudDto.setTitle(wordCloud.getTitle());
-//                wordCloudDto.setCount(wordCloud.getCount());
-//
-//                wordCloudDtos.add(wordCloudDto);
-//            }
-//            questionDto.setWordCloudDtos(wordCloudDtos);
-//
-//            questionDtos.add(questionDto);
-//        }
-//        surveyDetailDto.setQuestionList(questionDtos);
-//
-//        log.info(String.valueOf(surveyDetailDto));
-//        return surveyDetailDto;
-//    }
+                List<QuestionAnswer> questionAnswersByCheckAnswerId = getQuestionAnswerByCheckAnswerId(questionDocument.getId());
+                for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
+                    // 그 중에 주관식 답변만
+                    if (questionAnswer.getQuestionType() == 0) {
+                        ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                        choiceDto.setId(questionAnswer.getId());
+                        choiceDto.setTitle(questionAnswer.getCheckAnswer());
+                        choiceDto.setCount(0);
+
+                        choiceDtos.add(choiceDto);
+                    }
+                }
+            } else {
+                for (Choice choice : questionDocument.getChoiceList()) {
+                    ChoiceDetailDto choiceDto = new ChoiceDetailDto();
+                    choiceDto.setId(choice.getId());
+                    choiceDto.setTitle(choice.getTitle());
+                    choiceDto.setCount(choice.getCount());
+
+                    choiceDtos.add(choiceDto);
+                }
+            }
+            questionDto.setChoiceList(choiceDtos);
+
+            List<WordCloudDto> wordCloudDtos = new ArrayList<>();
+            for (WordCloud wordCloud : questionDocument.getWordCloudList()) {
+                WordCloudDto wordCloudDto = new WordCloudDto();
+                wordCloudDto.setId(wordCloud.getId());
+                wordCloudDto.setTitle(wordCloud.getTitle());
+                wordCloudDto.setCount(wordCloud.getCount());
+
+                wordCloudDtos.add(wordCloudDto);
+            }
+            questionDto.setWordCloudDtos(wordCloudDtos);
+
+            questionDtos.add(questionDto);
+        }
+        surveyDetailDto.setQuestionList(questionDtos);
+
+        log.info(String.valueOf(surveyDetailDto));
+        return surveyDetailDto;
+    }
 
     private SurveyAnalyzeDto getSurveyDetailAnalyzeDto(Long surveyId) {
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findById(surveyId).get();
