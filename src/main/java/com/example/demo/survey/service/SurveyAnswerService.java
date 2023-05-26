@@ -88,78 +88,6 @@ public class SurveyAnswerService {
         restAPItoAnalyzeController(surveyDocumentId);
     }
 
-//    public void wordCloud(String stringId) {
-//        long surveyDocumentId = Long.parseLong(stringId);
-//        // 값 분리해서 Analyze DB에 저장
-//        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
-//        List<QuestionDocument> questionDocumentList = surveyDocument.getQuestionDocumentList();
-//        for (QuestionDocument questionDocument : questionDocumentList) {
-//            // 주관식 문항의 id로 그 주관식 문항에 대답한 questionAnswerList를 찾아옴
-//            List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
-//
-//            //wordCloud 분석
-//            ArrayList<String> answerList = new ArrayList<>();
-//            for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
-//                if (questionAnswer.getQuestionType() != 0) {
-//                    continue;
-//                }
-//                answerList.add(questionAnswer.getCheckAnswer());
-//            }
-//            log.info(String.valueOf(answerList));
-//
-//            Resource[] resources = new Resource[0];
-//            try {
-//                resources = ResourcePatternUtils
-//                        .getResourcePatternResolver(new DefaultResourceLoader())
-//                        .getResources("classpath*:python/stopword.txt");
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//            log.info(String.valueOf(resources[0]));
-//            String substring = String.valueOf(resources[0]).substring(6, String.valueOf(resources[0]).length() -1);
-//            log.info(substring);
-//
-//            List<String> stopwords = new ArrayList<>();
-//
-//            try (BufferedReader reader = new BufferedReader(new FileReader(substring))) {
-//                String line;
-//                while ((line = reader.readLine()) != null) {
-//                    stopwords.add(line);
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            String filterWords = removeStopwords(answerList, stopwords);
-//
-//            for (String s : Arrays.asList("\\[", "\\]", ",", "'")) {
-//                filterWords = filterWords.replaceAll(s, "");
-//            }
-//            log.info(filterWords);
-//
-//            Map<String, Integer> wordCount = countWords(filterWords);
-//            // Sort the wordCount map in descending order of values
-//            List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(wordCount.entrySet());
-//            sortedList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
-//
-//            // Print the sorted word counts
-//            log.info("Word Counts (Descending Order):");
-//            List<WordCloud> wordCloudList = new ArrayList<>();
-//            for (Map.Entry<String, Integer> entry : sortedList) {
-//                WordCloud wordCloud = new WordCloud();
-//                wordCloud.setQuestion_id(questionDocument);
-//                wordCloud.setTitle(entry.getKey());
-//                wordCloud.setCount(entry.getValue());
-//                log.info(entry.getKey() + ": " + entry.getValue());
-//                wordCloudRepository.save(wordCloud);
-//                wordCloudList.add(wordCloud);
-//            }
-//            questionDocument.setWordCloudList(wordCloudList);
-//            questionDocumentRepository.flush();
-//        }
-//    }
-
     // todo : 분석 응답 리스트 불러오기
     public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
         //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
@@ -253,33 +181,6 @@ public class SurveyAnswerService {
 
         log.info(String.valueOf(surveyDetailDto));
         return surveyDetailDto;
-    }
-
-    private static String removeStopwords(List<String> inputList, List<String> stopwords) {
-        List<String> filteredList = new ArrayList<>();
-
-        for (String inputString : inputList) {
-            // Tokenize the input string
-            String[] words = StringUtils.tokenizeToStringArray(inputString, " ");
-
-            // Remove stopwords
-            List<String> filteredWords = new ArrayList<>();
-            for (String word : words) {
-                // Convert word to lowercase for case-insensitive matching
-                String lowercaseWord = word.toLowerCase();
-
-                // Skip stopwords
-                if (!contains(new List[]{stopwords}, lowercaseWord)) {
-                    filteredWords.add(word);
-                }
-            }
-
-            // Reconstruct the filtered string
-            String filteredString = StringUtils.arrayToDelimitedString(filteredWords.toArray(), " ");
-            filteredList.add(filteredString);
-        }
-
-        return filteredList.toString().trim();
     }
 
     public static Map<String, Integer> countWords(String text) {
