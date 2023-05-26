@@ -9,12 +9,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
-
-import static org.thymeleaf.util.ArrayUtils.contains;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
@@ -79,6 +79,9 @@ public class SurveyAnswerService {
             surveyAnswer.setQuestion(questionAnswer);
         }
         surveyAnswerRepository.flush();
+
+        //count Answer
+        giveDocumentIdtoCountAnswer(surveyDocumentId);
         // 저장된 설문 응답을 Survey 에 연결 및 저장
 //        surveyDocument.setAnswer(surveyAnswer);
 //        surveyDocumentRepository.flush();
@@ -232,6 +235,28 @@ public class SurveyAnswerService {
                 .uri(apiUrl)
                 .header("Authorization","NouNull")
                 .bodyValue(String.valueOf(choiceId))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + post);
+    }
+
+    private static void giveDocumentIdtoCountAnswer(Long surveyDocumentId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("응답 저장 후 -> 분석 시작 REST API 전달");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/countAnswer/"+surveyDocumentId;
+
+        // Make a GET request to the API and retrieve the response
+        String post = webClient.post()
+                .uri(apiUrl)
+                .header("Authorization","NouNull")
+                .bodyValue(String.valueOf(surveyDocumentId))
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();

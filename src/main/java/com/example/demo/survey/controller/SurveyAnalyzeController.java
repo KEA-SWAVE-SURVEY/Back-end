@@ -1,19 +1,12 @@
 package com.example.demo.survey.controller;
 
-import com.example.demo.survey.domain.SurveyDocument;
 import com.example.demo.survey.exception.InvalidTokenException;
-import com.example.demo.survey.request.PageRequestDto;
 import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.response.SurveyDetailDto;
-import com.example.demo.survey.response.SurveyManageDto;
-import com.example.demo.survey.response.SurveyResponseDto;
 import com.example.demo.survey.service.SurveyAnalyzeService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +26,7 @@ public class SurveyAnalyzeController {
     public SurveyDetailDto readResponse(@PathVariable Long id) {
         return surveyService.getSurveyDetailDto(id);
     }
-//
+
 //    // todo:설문 관리 수정
 //    @GetMapping(value = "/api/survey/management/{surveyId}")
 //    public SurveyManageDto getManageSurvey(HttpServletRequest request, @PathVariable Long surveyId) throws InvalidTokenException {

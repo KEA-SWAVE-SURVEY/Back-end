@@ -34,6 +34,8 @@ public class SurveyDocument {
     private Date deadline;
     @Column(name = "url")
     private String url;
+    @Column(name = "answer_count")
+    private int countAnswer;
 
     @Column(name = "content")
     @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -45,13 +47,14 @@ public class SurveyDocument {
     private Survey survey;
 
     @Builder
-    public SurveyDocument(List<SurveyAnswer> surveyAnswerList, Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
+    public SurveyDocument(int countAnswer, List<SurveyAnswer> surveyAnswerList, Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
         this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;
         this.questionDocumentList = questionDocumentList;
 //        this.surveyAnswerList = surveyAnswerList;
+        this.countAnswer = countAnswer;
     }
 
 //    public void setAnswer(SurveyAnswer surveyAnswer) {

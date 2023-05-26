@@ -56,6 +56,12 @@ public class SurveyDocumentController {
          return "count success";
     }
 
+    @PostMapping(value = "/api/countAnswer/{id}")
+    public String countAnswer(@PathVariable Long id) {
+        surveyService.countAnswer(id);
+        return "count success";
+    }
+
     @GetMapping(value = "/api/getChoice/{id}")
     public Choice getChoice(@PathVariable Long id) {
         return surveyService.getChoice(id);
