@@ -41,13 +41,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class SurveyDocumentService {
-    private final WordCloudRepository wordCloudRepository;
-
     private final UserService2 userService;
     private final SurveyRepository surveyRepository;
     private final SurveyDocumentRepository surveyDocumentRepository;
     private final QuestionDocumentRepository questionDocumentRepository;
     private final ChoiceRepository choiceRepository;
+    private final WordCloudRepository wordCloudRepository;
 
     @Transactional
     public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException, UnknownHostException {
@@ -74,6 +73,7 @@ public class SurveyDocumentService {
                 .type(surveyRequest.getType())
                 .questionDocumentList(new ArrayList<>())
                 .surveyAnswerList(new ArrayList<>())
+                .countAnswer(0)
                 .build();
         surveyDocumentRepository.save(surveyDocument);
 
@@ -175,8 +175,10 @@ public class SurveyDocumentService {
     }
 
     //count +1
+    //응답자 수 +1
     public void countChoice(Long choiceId) {
         Optional<Choice> findChoice = choiceRepository.findById(choiceId);
+
         if (findChoice.isPresent()) {
             //todo: querydsl로 변경
             findChoice.get().setCount(findChoice.get().getCount() + 1);
@@ -320,5 +322,11 @@ public class SurveyDocumentService {
         wordCloudRepository.deleteAllByQuestionDocument(questionDocumentRepository.findById(id).get());
         questionDocumentRepository.findById(id).get().setWordCloudList(wordCloudList);
         questionDocumentRepository.flush();
+    }
+
+    public void countAnswer(Long id) {
+        Optional<SurveyDocument> byId = surveyDocumentRepository.findById(id);
+        byId.get().setCountAnswer(byId.get().getCountAnswer() + 1);
+        surveyDocumentRepository.flush();
     }
 }

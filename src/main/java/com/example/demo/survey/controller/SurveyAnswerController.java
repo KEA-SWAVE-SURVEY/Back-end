@@ -30,11 +30,11 @@ public class SurveyAnswerController {
         return "Success";
     }
 
-    // 설문 응답 조회
-    @GetMapping(value = "/api/response/{id}")
-    public SurveyDetailDto readResponse(@PathVariable Long id){
-        return surveyService.getParticipantSurvey(id);
-    }
+//    // 설문 응답 조회
+//    @GetMapping(value = "/api/response/{id}")
+//    public SurveyDetailDto readResponse(@PathVariable Long id){
+//        return surveyService.getParticipantSurvey(id);
+//    }
 
     // getQuestionAnswer
     @GetMapping(value = "/api/question/list/{id}")

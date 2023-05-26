@@ -352,7 +352,6 @@ public class SurveyAnalyzeService {
         }
     }
 
-
     // 분석 응답 (문항 별 응답 수 불러오기) (Count)
 //    public SurveyDetailDto readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
 ////        checkInvalidToken(request);
@@ -407,6 +406,9 @@ public class SurveyAnalyzeService {
         //Survey_Id를 가져와서 그 Survey 의 상세분석을 가져옴
         SurveyAnalyze surveyAnalyze = surveyAnalyzeRepository.findBySurveyDocumentId(surveyId);
 
+        if (surveyAnalyze == null) {
+            return null;
+        }
 //        checkInvalidToken(request);
         return getSurveyDetailAnalyzeDto(surveyAnalyze.getId());
     }
@@ -431,6 +433,7 @@ public class SurveyAnalyzeService {
         surveyDetailDto.setId(surveyDocument.getId());
         surveyDetailDto.setTitle(surveyDocument.getTitle());
         surveyDetailDto.setDescription(surveyDocument.getDescription());
+        surveyDetailDto.setCountAnswer(surveyDocument.getCountAnswer());
 
         List<QuestionDetailDto> questionDtos = new ArrayList<>();
         for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
@@ -718,7 +721,6 @@ public class SurveyAnalyzeService {
 
         return questionAnswerList;
     }
-
 
     private void postToQuestionToSetWordCloud(Long id, List<WordCloudDto> wordCloudList) {
         //REST API로 분석 시작 컨트롤러로 전달
