@@ -13,7 +13,7 @@ import lombok.*;
 @Setter
 public class ChoiceAnalyze {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "choice_id")
+    @Column(name = "choice_analyze_id")
     private Long id;
     @Column(name = "support", nullable = false)
     private double support;
@@ -28,7 +28,7 @@ public class ChoiceAnalyze {
 
     @ManyToOne
     @JsonIgnore // 순환참조 방지
-    @JoinColumn(name = "question_analyze_id")
-    private QuestionAnalyze questionAnalyzeId;
+    @JoinColumn(name = "apriori_analyze_id")
+    private AprioriAnalyze aprioriAnalyzeId;
 
 }

@@ -35,45 +35,34 @@ public class SurveyDocument {
     @Column(name = "url")
     private String url;
 
-    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore //순환참조 방지
     @Column(name = "content")
+    @OneToMany(mappedBy = "surveyDocumentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<QuestionDocument> questionDocumentList;
-
-    @OneToOne(mappedBy = "surveyDocument", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false, orphanRemoval = true)
-    @JsonIgnore
-    private SurveyAnalyze surveyAnalyze;
 
     @ManyToOne
     @JsonIgnore // 순환참조 방지
     @JoinColumn(name = "survey_id")
     private Survey survey;
 
-    @OneToMany(mappedBy = "surveyDocument", fetch = FetchType.LAZY)
-    @JsonIgnore //순환참조 방지
-    @Column(name = "survey_answerList")
-    private List<SurveyAnswer> surveyAnswerList;
-
     @Builder
-    public SurveyDocument(List<SurveyAnswer> surveyAnswerList, Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList, SurveyAnalyze surveyAnalyze) {
+    public SurveyDocument(List<SurveyAnswer> surveyAnswerList, Survey survey, String title, int type, String description, List<QuestionDocument> questionDocumentList) {
         this.survey = survey;
         this.title = title;
         this.type = type;
         this.description = description;
         this.questionDocumentList = questionDocumentList;
-        this.surveyAnalyze = surveyAnalyze;
-        this.surveyAnswerList = surveyAnswerList;
+//        this.surveyAnswerList = surveyAnswerList;
     }
 
-    public void setAnswer(SurveyAnswer surveyAnswer) {
-        this.surveyAnswerList.add(surveyAnswer);
-    }
+//    public void setAnswer(SurveyAnswer surveyAnswer) {
+//        this.surveyAnswerList.add(surveyAnswer);
+//    }
     // 문항 list 에 넣어주기
     public void setQuestion(QuestionDocument questionDocument) {
         this.questionDocumentList.add(questionDocument);
     }
     // 문항 analyze 에 넣어주기
-    public void setAnalyze(SurveyAnalyze surveyAnalyze) {
-        this.surveyAnalyze=surveyAnalyze;
-    }
+//    public void setAnalyze(SurveyAnalyze surveyAnalyze) {
+//        this.surveyAnalyze=surveyAnalyze;
+//    }
 }

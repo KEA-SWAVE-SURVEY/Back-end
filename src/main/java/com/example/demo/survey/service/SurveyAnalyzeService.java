@@ -1,42 +1,24 @@
 package com.example.demo.survey.service;
 
-import com.example.demo.survey.repository.aprioriAnlayze.AprioriAnalyzeRepository;
-import com.example.demo.survey.repository.chiAnlayze.ChiAnalyzeRepository;
-import com.example.demo.survey.repository.compareAnlayze.CompareAnalyzeRepository;
-import com.example.demo.survey.repository.wordCloud.WordCloudRepository;
-import com.example.demo.survey.response.SurveyAnalyzeDto;
 import com.example.demo.survey.domain.*;
 import com.example.demo.survey.exception.InvalidPythonException;
-import com.example.demo.survey.exception.InvalidSurveyException;
 import com.example.demo.survey.exception.InvalidTokenException;
-import com.example.demo.survey.repository.choice.ChoiceRepository;
+import com.example.demo.survey.repository.aprioriAnlayze.AprioriAnalyzeRepository;
+import com.example.demo.survey.repository.chiAnlayze.ChiAnalyzeRepository;
 import com.example.demo.survey.repository.choiceAnalyze.ChoiceAnalyzeRepository;
+import com.example.demo.survey.repository.compareAnlayze.CompareAnalyzeRepository;
 import com.example.demo.survey.repository.questionAnlayze.QuestionAnalyzeRepository;
-import com.example.demo.survey.repository.questionAnswer.QuestionAnswerRepository;
-import com.example.demo.survey.repository.questionDocument.QuestionDocumentRepository;
-import com.example.demo.survey.repository.survey.SurveyRepository;
 import com.example.demo.survey.repository.surveyAnalyze.SurveyAnalyzeRepository;
-import com.example.demo.survey.repository.surveyAnswer.SurveyAnswerRepository;
-import com.example.demo.survey.repository.surveyDocument.SurveyDocumentRepository;
-import com.example.demo.survey.request.ChoiceRequestDto;
-import com.example.demo.survey.request.PageRequestDto;
-import com.example.demo.survey.request.QuestionRequestDto;
-import com.example.demo.survey.request.SurveyRequestDto;
 import com.example.demo.survey.response.*;
-import com.example.demo.user.domain.User;
-import com.example.demo.user.repository.UserRepository;
-import com.example.demo.user.service.UserService2;
-import com.example.demo.util.page.PageRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -45,215 +27,22 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.UnknownHostException;
 import java.util.*;
 
 import static org.thymeleaf.util.ArrayUtils.contains;
 
 //import static com.example.demo.util.SurveyTypeCheck.typeCheck;
 
-//@Service
+@Service
 @RequiredArgsConstructor
 @Slf4j
-public class SurveyService {
-    private final WordCloudRepository wordCloudRepository;
+public class SurveyAnalyzeService {
     private final ChiAnalyzeRepository chiAnalyzeRepository;
     private final CompareAnalyzeRepository compareAnalyzeRepository;
     private final AprioriAnalyzeRepository aprioriAnalyzeRepository;
     private final ChoiceAnalyzeRepository choiceAnalyzeRepository;
     private final QuestionAnalyzeRepository questionAnalyzeRepository;
-
-    private final UserService2 userService;
-    private final UserRepository userRepository;
-    private final SurveyRepository surveyRepository;
-    private final SurveyDocumentRepository surveyDocumentRepository;
-    private final QuestionDocumentRepository questionDocumentRepository;
-    private final SurveyAnswerRepository surveyAnswerRepository;
-    private final QuestionAnswerRepository questionAnswerRepository;
-    private final ChoiceRepository choiceRepository;
     private final SurveyAnalyzeRepository surveyAnalyzeRepository;
-
-    @Transactional
-    public void createSurvey(HttpServletRequest request, SurveyRequestDto surveyRequest) throws InvalidTokenException, UnknownHostException {
-
-        // 유저 정보 받아오기
-        checkInvalidToken(request);
-        log.info("유저 정보 받아옴");
-
-        // 유저 정보에 해당하는 Survey 저장소 가져오기
-        Survey userSurvey = userService.getUser(request).getSurvey();
-        if(userSurvey == null) {
-            userSurvey = Survey.builder()
-                    .user(userService.getUser(request))
-                    .surveyDocumentList(new ArrayList<>())
-                    .build();
-            surveyRepository.save(userSurvey);
-        }
-
-        // Survey Request 를 Survey Document 에 저장하기
-        SurveyDocument surveyDocument = SurveyDocument.builder()
-                .survey(userSurvey)
-                .title(surveyRequest.getTitle())
-                .description(surveyRequest.getDescription())
-                .type(surveyRequest.getType())
-                .questionDocumentList(new ArrayList<>())
-                .surveyAnswerList(new ArrayList<>())
-                .build();
-        surveyDocumentRepository.save(surveyDocument);
-
-        // 설문 문항
-        surveyDocumentRepository.findById(surveyDocument.getId());
-        for (QuestionRequestDto questionRequestDto : surveyRequest.getQuestionRequest()) {
-            // 설문 문항 저장
-            QuestionDocument questionDocument = QuestionDocument.builder()
-                    .surveyDocument(surveyDocumentRepository.findById(surveyDocument.getId()).get())
-                    .title(questionRequestDto.getTitle())
-                    .questionType(questionRequestDto.getType())
-                    .build();
-            questionDocumentRepository.save(questionDocument);
-
-            if(questionRequestDto.getType() == 0) continue; // 주관식
-
-            // 객관식, 찬부식일 경우 선지 저장
-            questionDocument.setChoiceList(new ArrayList<>());
-            for(ChoiceRequestDto choiceRequestDto : questionRequestDto.getChoiceList()) {
-                Choice choice = Choice.builder()
-                        .question_id(questionDocumentRepository.findById(questionDocument.getId()).get())
-                        .title(choiceRequestDto.getChoiceName())
-                        .count(0)
-                        .build();
-                choiceRepository.save(choice);
-                questionDocument.setChoice(choice);
-            }
-            surveyDocument.setQuestion(questionDocument);
-            // choice 가 추가될 때마다 변경되는 Question Document 정보 저장
-            questionDocumentRepository.flush();
-        }
-        // question 이 추가될 때마다 변경되는 Survey Document 정보 저장
-        surveyDocumentRepository.flush();
-
-        // Survey 에 SurveyDocument 저장
-        userSurvey.setDocument(surveyDocument);
-        surveyRepository.flush();
-
-//        // 스냅샷 이미지 저장하기
-//        // 172.16.210.25 : Image DB VM 접속하기
-//        InetAddress imageVM = Inet4Address.getByAddress(new byte[]{(byte) 172, 16, (byte) 210, 25});
-//
-//        // 스냅샷 찍기
-//        GrapzIt
-    }
-
-    public void captureSnapshot() {
-
-    }
-
-    // gird method 로 SurveyDocument 조회
-    public List<SurveyDocument> readSurveyListByGrid(HttpServletRequest request, PageRequestDto pageRequest) {
-
-        User user = userService.getUser(request);
-
-        return surveyRepository.getSurveyDocumentListGrid(user, pageRequest);
-    }
-
-    // list method 로 SurveyDocument 조회
-    public Page<SurveyDocument> readSurveyList(HttpServletRequest request, PageRequestDto pageRequest) throws Exception {
-
-        checkInvalidToken(request);
-
-        User user = userService.getUser(request);
-        // gird 일 경우 그냥 다 보여주기
-//        if(pageRequest.getMethod().equals("grid")) {
-//            return surveyRepository.getSurveyDocumentListGrid();
-//        }
-
-        PageRequest page = PageRequest.builder()
-                .page(pageRequest.getPage())
-                .method(pageRequest.getMethod())
-                .sortProperties(pageRequest.getSort1()) // date or title
-                .direct(pageRequest.getSort2()) // ascending or descending
-                .build();
-
-        // Request Method
-        // 1. view Method : grid or list
-        // 2. what page number
-        // 3. sort on What : date or title
-        // 4. sort on How : ascending or descending
-        Pageable pageable = page.of(page.getSortProperties(), page.getDirection(page.getDirect()));
-
-        return surveyRepository.surveyDocumentPaging(user, pageable);
-    }
-
-    public SurveyDetailDto readSurveyDetail(HttpServletRequest request, Long id) throws InvalidTokenException {
-
-        checkInvalidToken(request);
-//        User user = userService.getUser(request);
-//
-//        surveyRepository.findByUser(user.getId())
-//                .getSurveyDocumentList().get()
-        return getSurveyDetailDto(id);
-    }
-
-    // 설문 응답 참여
-    public SurveyDetailDto getParticipantSurvey(Long id){
-        return getSurveyDetailDto(id);
-    }
-
-    // 설문 응답 저장
-    public void createSurveyAnswer(SurveyResponseDto surveyResponse){
-        Long surveyDocumentId = surveyResponse.getId();
-        // SurveyDocumentId를 통해 어떤 설문인지 가져옴
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
-
-        // Survey Response 를 Survey Answer 에 저장하기
-        SurveyAnswer surveyAnswer = SurveyAnswer.builder()
-                .surveyDocumentId(surveyDocumentId)
-                .title(surveyResponse.getTitle())
-                .description(surveyResponse.getDescription())
-                .type(surveyResponse.getType())
-                .questionAnswerList(new ArrayList<>())
-                .build();
-        surveyAnswerRepository.save(surveyAnswer);
-
-        // Survey Response 를 Question Answer 에 저장하기
-        surveyAnswerRepository.findById(surveyAnswer.getId());
-        for (QuestionResponseDto questionResponseDto : surveyResponse.getQuestionResponse()) {
-            // Question Answer 에 저장
-            // todo: 주관식0 / 찬부식1, 객관식2 구분 저장
-            QuestionAnswer questionAnswer = QuestionAnswer.builder()
-                    .surveyAnswerId(surveyAnswerRepository.findById(surveyAnswer.getId()).get())
-                    .title(questionResponseDto.getTitle())
-                    .questionType(questionResponseDto.getType())
-                    .checkAnswer(questionResponseDto.getAnswer())
-                    .checkAnswerId(questionResponseDto.getAnswerId())
-                    .surveyDocumentId(surveyDocumentId)
-                    .build();
-            questionAnswerRepository.save(questionAnswer);
-            // if 찬부식 or 객관식
-            // if 주관식 -> checkId에 주관식인 questionId가 들어감
-            if(questionResponseDto.getType()!=0){
-                //check 한 answer 의 id 값으로 survey document 의 choice 를 찾아서 count ++
-                if (questionAnswer.getCheckAnswerId() != null) {
-                    Optional<Choice> findChoice = choiceRepository.findById(questionAnswer.getCheckAnswerId());
-    //                Optional<Choice> findChoice = choiceRepository.findByTitle(questionAnswer.getCheckAnswer());
-
-                    if (findChoice.isPresent()) {
-                        //todo: querydsl로 변경
-                        findChoice.get().setCount(findChoice.get().getCount() + 1);
-                        choiceRepository.save(findChoice.get());
-                    }
-                }
-            }
-            surveyAnswer.setQuestion(questionAnswer);
-        }
-        surveyAnswerRepository.flush();
-        // 저장된 설문 응답을 Survey 에 연결 및 저장
-//        surveyDocument.setAnswer(surveyAnswer);
-        surveyDocumentRepository.flush();
-
-        //REST API to survey analyze controller
-        restAPItoAnalyzeController(surveyDocumentId);
-    }
 
     // 파이썬에 DocumentId 보내주고 분석결과 Entity에 매핑해서 저장
     public void analyze(String stringId) throws InvalidPythonException {
@@ -341,12 +130,15 @@ public class SurveyService {
             }
             surveyAnalyzeRepository.save(surveyAnalyze);
 
+            //get surveyDocument
+            SurveyDocument surveyDocument = getSurveyDocument(surveyDocumentId);
+
             int p = 0;
-            for (QuestionDocument questionDocument : surveyDocumentRepository.findById(surveyDocumentId).get().getQuestionDocumentList()) {
+            for (QuestionDocument questionDocument : surveyDocument.getQuestionDocumentList()) {
                 if (questionDocument.getQuestionType() == 0) {
                     continue;
                 }
-                QuestionAnalyze questionAnalyze = new QuestionAnalyze();
+                QuestionAnalyze questionAnalyze;
                 questionAnalyze = QuestionAnalyze.builder()
                         .questionTitle(questionDocument.getTitle())
                         .surveyAnalyzeId(surveyAnalyze)
@@ -356,9 +148,9 @@ public class SurveyService {
 
                 // compare
                 // [[[1.0], [1.0]], [[1.0], [1.0]]]
-                java.util.List<Object> compareList = (List<Object>) compare.get(p);
+                List<Object> compareList = (List<Object>) compare.get(p);
                 // [[1.0], [1.0]] -> compareList
-                List<QuestionDocument> questionDocumentList = surveyDocumentRepository.findById(surveyDocumentId).get().getQuestionDocumentList();
+                List<QuestionDocument> questionDocumentList = surveyDocument.getQuestionDocumentList();
                 int size = questionDocumentList.size();
                 int o=0;
                 for (int k = 0; k < size; k++) {
@@ -383,7 +175,7 @@ public class SurveyService {
 
                 // chi
                 // [[0.10247043485974942, 1.0], [1.0, 0.10247043485974942]]
-                java.util.List<Object> chiList = (List<Object>) chi.get(p);
+                List<Object> chiList = (List<Object>) chi.get(p);
                 // [0.10247043485974942, 1.0] -> chiList
                 o=0;
                 for (int k = 0; k < size; k++) {
@@ -407,13 +199,17 @@ public class SurveyService {
                 //apriori
                 for (int j = 0; j < apriori.size(); j++) {
                     // [['1', [0.66, '3'], [0.33, '4']]
-                    java.util.List<Object> dataList = (List<Object>) apriori.get(j);
+                    List<Object> dataList = (List<Object>) apriori.get(j);
                     Long choiceId = Long.valueOf((Integer) dataList.get(0));
-                    AprioriAnalyze aprioriAnalyze = new AprioriAnalyze();
+                    AprioriAnalyze aprioriAnalyze;
+                    //get Choice
+                    Choice choice = getChoice(choiceId);
+                    QuestionDocument questionDocument1 =getQuestionByChoiceId(choiceId);
+//                    QuestionDocument questionDocument1 = getQuestionDocument(choice.getQuestion_id().getId());
                     aprioriAnalyze = AprioriAnalyze.builder()
                             .choiceId(choiceId)
-                            .choiceTitle(choiceRepository.findById(choiceId).get().getTitle())
-                            .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId).get().getQuestion_id().getId()).get().getTitle())
+                            .choiceTitle(choice.getTitle())
+                            .questionTitle(questionDocument1.getTitle())
                             .choiceAnalyzeList(new ArrayList<>())
                             .questionAnalyzeId(questionAnalyze)
                             .build();
@@ -426,12 +222,13 @@ public class SurveyService {
                         ChoiceAnalyze choiceAnalyze = new ChoiceAnalyze();
                         double support = Math.round((double) subList.get(0) *1000) / 1000.0;
                         Long choiceId2 = Long.valueOf((Integer) subList.get(1));
+                        Choice choice1 = getChoice(choiceId2);
                         choiceAnalyze = choiceAnalyze.builder()
-                                .choiceTitle(choiceRepository.findById(choiceId2).get().getTitle())
+                                .choiceTitle(choice1.getTitle())
                                 .support(support)
                                 .aprioriAnalyzeId(aprioriAnalyze)
                                 .choiceId(choiceId2)
-                                .questionTitle(questionDocumentRepository.findById(choiceRepository.findById(choiceId2).get().getQuestion_id().getId()).get().getTitle())
+                                .questionTitle(questionDocument1.getTitle())
                                 .build();
                         choiceAnalyzeRepository.save(choiceAnalyze);
                     }
@@ -449,7 +246,7 @@ public class SurveyService {
 //            // compare의 size는 총 question(not 주관식)의 갯수
 //            for (int j = 0; j < compare.size(); j++) {
 //                // [[1.0], [1.0]]
-//                java.util.List<Object> dataList = (List<Object>) compare.get(j);
+//                List<Object> dataList = (List<Object>) compare.get(j);
 //                //dataList size == questionList size
 //                for (int i = 0; i < dataList.size(); i++) {
 //
@@ -469,11 +266,16 @@ public class SurveyService {
     public void wordCloud(String stringId) {
         long surveyDocumentId = Long.parseLong(stringId);
         // 값 분리해서 Analyze DB에 저장
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
+        SurveyDocument surveyDocument = getSurveyDocument(surveyDocumentId);
         List<QuestionDocument> questionDocumentList = surveyDocument.getQuestionDocumentList();
         for (QuestionDocument questionDocument : questionDocumentList) {
+            if (questionDocument.getQuestionType() != 0) {
+                continue;
+            }
             // 주관식 문항의 id로 그 주관식 문항에 대답한 questionAnswerList를 찾아옴
-            List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
+            // get questionAnswers By CheckAnswerId
+            List<QuestionAnswer> questionAnswersByCheckAnswerId = getQuestionAnswerByCheckAnswerId(questionDocument.getId());
+//            List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
 
             //wordCloud 분석
             ArrayList<String> answerList = new ArrayList<>();
@@ -530,72 +332,75 @@ public class SurveyService {
                 wordCloud.setTitle(entry.getKey());
                 wordCloud.setCount(entry.getValue());
                 log.info(entry.getKey() + ": " + entry.getValue());
-                wordCloudRepository.save(wordCloud);
                 wordCloudList.add(wordCloud);
             }
-            questionDocument.setWordCloudList(wordCloudList);
-            questionDocumentRepository.flush();
+
+            List<WordCloudDto> wordCloudDtos = new ArrayList<>();
+            for (WordCloud wordCloud:wordCloudList) {
+                WordCloudDto wordCloudDto = new WordCloudDto();
+                wordCloudDto.setId(wordCloudDto.getId());
+                wordCloudDto.setTitle(wordCloud.getTitle());
+                wordCloudDto.setCount(wordCloud.getCount());
+                wordCloudDtos.add(wordCloudDto);
+            }
+
+            // post to questionDocument to set WordCloudList
+            Long id = questionDocument.getId();
+            postToQuestionToSetWordCloud(id, wordCloudDtos);
+//            questionDocument.setWordCloudList(wordCloudList);
+//            questionDocumentRepository.flush();
         }
     }
 
-    // todo : 분석 응답 리스트 불러오기
-    public List<SurveyAnswer> readSurveyAnswerList(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
-        //Survey_Id를 가져와서 그 Survey 의 AnswerList 를 가져와야 함
-        List<SurveyAnswer> surveyAnswerList = surveyAnswerRepository.findSurveyAnswersBySurveyDocumentId(surveyId);
-
-        checkInvalidToken(request);
-
-        return surveyAnswerList;
-    }
 
     // 분석 응답 (문항 별 응답 수 불러오기) (Count)
-    public SurveyDetailDto readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
-//        checkInvalidToken(request);
-        return getSurveyDetailDto(surveyId);
-    }
+//    public SurveyDetailDto readCountChoice(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+////        checkInvalidToken(request);
+//        return getSurveyDetailDto(surveyId);
+//    }
 
     // 분석 관리 Get
-    public SurveyManageDto readSurveyMange(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
-//        checkInvalidToken(request);
-
-        //Survey_Id를 가져와서 그 Survey 의 Document 를 가져옴
-        Optional<SurveyDocument> findSurvey = surveyDocumentRepository.findById(surveyId);
-
-        if (findSurvey.isPresent()) {
-            //manage 부분만 추출
-            SurveyManageDto manage = new SurveyManageDto();
-            manage.builder()
-                    .acceptResponse(findSurvey.get().isAcceptResponse())
-                    .startDate(findSurvey.get().getStartDate())
-                    .deadline(findSurvey.get().getDeadline())
-                    .url(findSurvey.get().getUrl())
-                    .build();
-
-            return manage;
-        }else {
-            throw new InvalidSurveyException();
-        }
-    }
+//    public SurveyManageDto readSurveyMange(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
+////        checkInvalidToken(request);
+//
+//        //Survey_Id를 가져와서 그 Survey 의 Document 를 가져옴
+//        Optional<SurveyDocument> findSurvey = surveyDocumentRepository.findById(surveyId);
+//
+//        if (findSurvey.isPresent()) {
+//            //manage 부분만 추출
+//            SurveyManageDto manage = new SurveyManageDto();
+//            manage.builder()
+//                    .acceptResponse(findSurvey.get().isAcceptResponse())
+//                    .startDate(findSurvey.get().getStartDate())
+//                    .deadline(findSurvey.get().getDeadline())
+//                    .url(findSurvey.get().getUrl())
+//                    .build();
+//
+//            return manage;
+//        }else {
+//            throw new InvalidSurveyException();
+//        }
+//    }
 
     // 분석 관리 Post
-    public void setSurveyMange(HttpServletRequest request, Long surveyId, SurveyManageDto manage) throws InvalidTokenException {
-//        checkInvalidToken(request);
-        Optional<SurveyDocument> optionalSurvey = surveyDocumentRepository.findById(surveyId);
-
-        if (optionalSurvey.isPresent()) {
-            SurveyDocument surveyDocument = optionalSurvey.get();
-            // update survey properties using the manage DTO
-            surveyDocument.setDeadline(manage.getDeadline());
-            surveyDocument.setUrl(manage.getUrl());
-            surveyDocument.setStartDate(manage.getStartDate());
-            surveyDocument.setAcceptResponse(manage.isAcceptResponse());
-
-            surveyDocumentRepository.save(surveyDocument);
-        } else {
-            throw new InvalidSurveyException();
-        }
-//        checkInvalidToken(request);
-    }
+//    public void setSurveyMange(HttpServletRequest request, Long surveyId, SurveyManageDto manage) throws InvalidTokenException {
+////        checkInvalidToken(request);
+//        Optional<SurveyDocument> optionalSurvey = surveyDocumentRepository.findById(surveyId);
+//
+//        if (optionalSurvey.isPresent()) {
+//            SurveyDocument surveyDocument = optionalSurvey.get();
+//            // update survey properties using the manage DTO
+//            surveyDocument.setDeadline(manage.getDeadline());
+//            surveyDocument.setUrl(manage.getUrl());
+//            surveyDocument.setStartDate(manage.getStartDate());
+//            surveyDocument.setAcceptResponse(manage.isAcceptResponse());
+//
+//            surveyDocumentRepository.save(surveyDocument);
+//        } else {
+//            throw new InvalidSurveyException();
+//        }
+////        checkInvalidToken(request);
+//    }
 
     // 분석 상세 분석 Get
     public SurveyAnalyzeDto readSurveyDetailAnalyze(HttpServletRequest request, Long surveyId) throws InvalidTokenException {
@@ -616,8 +421,10 @@ public class SurveyService {
     }
 
     // SurveyDocument Response 보낼 SurveyDetailDto로 변환하는 메서드
-    private SurveyDetailDto getSurveyDetailDto(Long surveyDocumentId) {
-        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
+    public SurveyDetailDto getSurveyDetailDto(Long surveyDocumentId) {
+//        SurveyDocument surveyDocument = surveyDocumentRepository.findById(surveyDocumentId).get();
+        SurveyDocument surveyDocument = getSurveyDocument(surveyDocumentId);
+
         SurveyDetailDto surveyDetailDto = new SurveyDetailDto();
 
         // SurveyDocument에서 SurveyParticipateDto로 데이터 복사
@@ -638,7 +445,8 @@ public class SurveyService {
             List<ChoiceDetailDto> choiceDtos = new ArrayList<>();
             if (questionDocument.getQuestionType() == 0) {
                 // 주관식 답변들 리스트
-                List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
+//                List<QuestionAnswer> questionAnswersByCheckAnswerId = questionAnswerRepository.findQuestionAnswersByCheckAnswerId(questionDocument.getId());
+                List<QuestionAnswer> questionAnswersByCheckAnswerId = getQuestionAnswerByCheckAnswerId(questionDocument.getId());
                 for (QuestionAnswer questionAnswer : questionAnswersByCheckAnswerId) {
                     // 그 중에 주관식 답변만
                     if (questionAnswer.getQuestionType() == 0) {
@@ -745,28 +553,6 @@ public class SurveyService {
         return surveyAnalyzeDto;
     }
 
-    private static void restAPItoAnalyzeController(Long surveyDocumentId) {
-        //REST API로 분석 시작 컨트롤러로 전달
-        // Create a WebClient instance
-        log.info("응답 저장 후 -> 분석 시작 REST API 전달");
-        WebClient webClient = WebClient.create();
-
-        // Define the API URL
-        String apiUrl = "http://localhost:8080/api/research/analyze/create";
-
-        // Make a GET request to the API and retrieve the response
-        String post = webClient.post()
-                .uri(apiUrl)
-                .header("Authorization","NouNull")
-                .bodyValue(String.valueOf(surveyDocumentId))
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-        // Process the response as needed
-        System.out.println("Request: " + post);
-    }
-
     private static String removeStopwords(List<String> inputList, List<String> stopwords) {
         List<String> filteredList = new ArrayList<>();
 
@@ -805,6 +591,155 @@ public class SurveyService {
         }
 
         return wordCount;
+    }
+
+    private static SurveyDocument getSurveyDocument(Long surveyDocumentId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("GET SurveyDocument");
+        WebClient webClient = WebClient.builder()
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1))
+                .build();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/getSurveyDocument/"+surveyDocumentId;
+
+        // Make a GET request to the API and retrieve the response
+        SurveyDocument get = webClient.get()
+                .uri(apiUrl)
+                .header("Authorization","NotNull")
+                .retrieve()
+                .bodyToMono(SurveyDocument.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + get);
+
+        return get;
+    }
+
+    private static Choice getChoice(Long choiceId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("GET Choice");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/getChoice/"+ choiceId;
+
+        // Make a GET request to the API and retrieve the response
+        Choice get = webClient.get()
+                .uri(apiUrl)
+                .header("Authorization","NotNull")
+                .retrieve()
+                .bodyToMono(Choice.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + get);
+
+        return get;
+    }
+
+    private static QuestionDocument getQuestionDocument(Long questionId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("GET question");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/getQuestion/"+ questionId;
+
+        // Make a GET request to the API and retrieve the response
+        QuestionDocument get = webClient.get()
+                .uri(apiUrl)
+                .header("Authorization","NotNull")
+                .retrieve()
+                .bodyToMono(QuestionDocument.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + get);
+
+        return get;
+    }
+
+    private QuestionDocument getQuestionByChoiceId(Long choiceId) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("GET question by choiceId");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/getQuestionByChoiceId/"+ choiceId;
+
+        // Make a GET request to the API and retrieve the response
+        QuestionDocument get = webClient.get()
+                .uri(apiUrl)
+                .header("Authorization","NotNull")
+                .retrieve()
+                .bodyToMono(QuestionDocument.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + get);
+
+        return get;
+    }
+
+    private List<QuestionAnswer> getQuestionAnswerByCheckAnswerId(Long id) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("GET questionAnswer List by checkAnswerId");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/getQuestionAnswerByCheckAnswerId/"+ id;
+
+        // Make a GET request to the API and retrieve the response
+        List<QuestionAnswer> questionAnswerList = webClient.get()
+                .uri(apiUrl)
+                .header("Authorization", "NotNull")
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(responseBody -> {
+                    ObjectMapper mapper = new ObjectMapper();
+                    try {
+                        return mapper.readValue(responseBody, new TypeReference<List<QuestionAnswer>>() {});
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .blockOptional()
+                .orElse(null);
+
+        // Process the response as needed
+        System.out.println("Request: " + questionAnswerList);
+
+        return questionAnswerList;
+    }
+
+
+    private void postToQuestionToSetWordCloud(Long id, List<WordCloudDto> wordCloudList) {
+        //REST API로 분석 시작 컨트롤러로 전달
+        // Create a WebClient instance
+        log.info("GET question by choiceId");
+        WebClient webClient = WebClient.create();
+
+        // Define the API URL
+        String apiUrl = "http://localhost:8080/api/setWordCloud/"+ id;
+
+        // Make a GET request to the API and retrieve the response
+        String response = webClient.post()
+                .uri(apiUrl)
+                .header("Authorization", "NotNull")
+                .bodyValue(wordCloudList)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        // Process the response as needed
+        System.out.println("Request: " + response);
     }
 
 }
