@@ -3,18 +3,16 @@ package com.example.demo.chatGPT.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import java.io.Serializable;
 @Getter
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatGptChoice implements Serializable {
-
+public class ChatResultDto {
+    private String text;
     private Integer index;
-
-    private Message message;
 
     @JsonProperty("finish_reason")
     private String finishReason;
+
 }

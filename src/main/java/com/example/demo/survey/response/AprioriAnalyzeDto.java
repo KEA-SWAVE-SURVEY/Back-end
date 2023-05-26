@@ -9,10 +9,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class QuestionAnalyzeDto {
+public class AprioriAnalyzeDto {
     private Long id;
     private String questionTitle;
-    private List<ChiAnalyzeDto> chiAnalyzeList;
-    private List<CompareAnalyzeDto> compareAnalyzeList;
-    private List<AprioriAnalyzeDto> aprioriAnalyzeList;
+    private String choiceTitle;
+    private List<ChoiceAnalyzeDto> choiceAnalyzeList;
 }

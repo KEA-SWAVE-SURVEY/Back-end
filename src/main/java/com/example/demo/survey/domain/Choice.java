@@ -19,7 +19,7 @@ public class Choice {
     private int count;
 
     @ManyToOne
-    @JsonIgnore // 순환참조 방지
+    @JsonIgnore
     @JoinColumn(name = "question_id")
     private QuestionDocument question_id;
 
