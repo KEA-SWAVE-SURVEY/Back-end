@@ -20,6 +20,11 @@ pipeline {
             steps {
                  sh "chmod +x gradlew"
                  sh "./gradlew clean bootJar"
+                 slackSend (
+                     channel: '#jenkins', 
+                     color: '#00FF00', 
+                     message: "SUCCESS: build ${env.JOB_NAME}"
+                 )
             }
         }
         
