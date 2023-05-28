@@ -7,6 +7,11 @@ pipeline {
     stages() {
         stage('git clone') {
             steps() {
+                slackSend (
+                    channel: '#jenkins', 
+                    color: '#FFFF00', 
+                    message: "STARTED: Job ${env.JOB_NAME}"
+                )
                 git branch: 'master', credentialsId: 'git-kjk7212', url: 'https://github.com/KEA-SWAVE-SURVEY/Back-end/'
             }
         }
@@ -25,6 +30,11 @@ pipeline {
                     docker.withRegistry('https://registry.hub.docker.com/repository/docker/kjk7212/back', 'docker-hub-credentials') {
                         image.push()
                     }
+                slackSend (
+                    channel: '#jenkins', 
+                    color: '#00FF00', 
+                    message: "SUCCESS: build docker image ${env.JOB_NAME}"
+                )
                 }
             }
         }
@@ -38,6 +48,22 @@ pipeline {
                 sh "ssh -o StrictHostKeyChecking=no ${TARGET_HOST} 'docker run --name back -d -p 80:8080 kjk7212/back'"
                 }
             }
+        }
+    }
+    post {
+        success {
+            slackSend (
+                channel: '#jenkins', 
+                color: '#00FF00', 
+                message: "SUCCESS: Job ${env.JOB_NAME}"
+            )
+        }
+        failure {
+            slackSend (
+                channel: '#jenkins', 
+                color: '#FF0000', 
+                message: "FAIL: Job ${env.JOB_NAME}"
+            )
         }
     }
 }
